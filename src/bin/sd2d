@@ -1,0 +1,284 @@
+#!/usr/bin/env python
+#############################################################################
+# Copyright (c) 2017 SiteWare Corp. All right reserved
+#############################################################################
+
+import argparse
+import fnmatch
+import logging
+import os
+import subprocess
+import sys
+import time
+from threading  import Thread
+from sd2 import config_dct,myhosts
+
+try:
+    from Queue import Queue, Empty
+except ImportError:
+    from queue import Queue, Empty  # python 3.x
+
+ON_POSIX = 'posix' in sys.builtin_module_names
+
+g_queue = Queue()
+
+workspaces =  config_dct['workspaces']
+# Normalize that host can be just a string
+for ws in workspaces:
+    hosts = ws.get('targets', [])
+    for ii,host in enumerate(hosts):
+        if isinstance(host, basestring):
+            host = {'name': host}
+            hosts[ii] = host
+workspaces_dict = {x['name']: x for x in workspaces}
+
+class Workspace(object):
+    def __init__(self, node):
+        self._node = node
+
+    def get_targets(self):
+        hosts = self._node.get('targets', [])
+        for host in hosts:
+            assert 'name' in host
+        return hosts
+
+################################################################################
+
+def workspace_instance_has_path(wi, apath):
+    full_path = os.path.join(wi['source_root'], wi.get('source', ''))
+    if not full_path.endswith(os.path.sep):
+        full_path += os.path.sep
+    if apath.startswith(full_path):
+        logging.debug("%s might belong to %s", apath, wi['name'])
+        for paths in wi.get('paths'):
+            if paths.get('include'):
+                found = False
+                for ipath in paths.get('include'):
+                    logging.debug("CNS:INCL:%s (%s) %s", ipath, apath, full_path)
+                    if (fnmatch.fnmatch(apath, ipath) or
+                        ipath in apath):
+                        logging.debug("FOUND:INCL:%s (%s)", ipath, apath)
+                        found = True
+                        break
+                if not found:
+                    return False
+                if found:
+                    return True
+            if paths.get('exclude'):
+                for epath in paths.get('exclude'):
+                    logging.debug("CNS:EXCL:%s (%s)", epath, apath)
+                    if (epath in apath or
+                        fnmatch.fnmatch(apath, epath)):
+                            logging.debug("EXCL %s from %s", apath,
+                                          wi['name'])
+                            return False
+        return True
+    return False
+
+
+def workspace_instance_sync(wi):
+    for host in Workspace(wi).get_targets():
+        if args.hosts and not host['name'] in args.hosts:
+            continue
+        host['needsync'] = 1
+
+
+def deal_with_changed_file(wi, fpath):
+    if workspace_instance_has_path(wi, fpath):
+        logging.debug("FOUND: wsi %s has path %s", wi['name'], fpath)
+        if os.path.isfile(fpath):
+            for target in Workspace(wi).get_targets():
+                if args.hosts and not target['name'] in args.hosts:
+                    continue
+                cmd = "scp -p {} {}:{}".format(
+                    fpath,
+                    target['name'],
+                    fpath.replace(os.environ.get('HOME'), '~'))
+                if args.dryrun:
+                    cmd = 'echo ' + cmd
+                logging.info(cmd)
+                subprocess.Popen(cmd, shell=True)
+        else:
+            workspace_instance_sync(wi)
+
+################################################################################
+
+g_observers = []
+
+def rsync(ws, host):
+    cmd = ['rsync',
+           '-rlptgoOzv'
+           ]
+    if args.dryrun:
+        cmd.append('--dry-run')
+    for paths in ws.get('paths'):
+        if paths.get('include'):
+            for path in paths.get('include'):
+                cmd.append('--include=' + path)
+        elif paths.get('exclude'):
+            for path in paths.get('exclude'):
+                cmd.append('--exclude=' + path)
+    if ws.get('delete'):
+        cmd.append('--delete')
+        cmd.append('--force-delete')
+    if args.usessh:
+        cmd.append('-e')
+        cmd.append('ssh')
+    cmd.append(os.path.join(ws['source_root'], ws.get("source", "")) + '/')
+    dest_root = ws.get('dest_root', ws['source_root']).replace(os.environ.get('HOME'), '~')
+    cmd.append("{}:{}/".format(host['name'], os.path.join(dest_root, ws.get("source", ""))))
+    return cmd
+
+
+def enqueue_output(proc, ws):
+    while True:
+        line = proc.stdout.readline().strip()
+        g_queue.put([line,ws])
+
+def _glob_to_regex(ss):
+    rr = ss.replace('.', '\\.')
+    rr = rr.replace('*', '.*')
+    return rr
+
+
+def fswatch(host):
+    logging.debug("FSW:EE")
+    assert host == '' or isinstance(host, list)
+    for wi in workspaces:
+        cmd = ['fswatch',
+               '--latency', '0.1',
+               '--recursive',
+               # "--exclude='.*\.pyc$'",
+               # "--exclude='.*\.swp$'",
+               # "--exclude='.*\.swpx$'",
+               # "--exclude='\.idea/.*'",
+               # "--exclude='\.git/.*'"
+               ]
+        paths_to_watch = []
+        if not host or set(host).intersection(
+                [x['name'] for x in Workspace(wi).get_targets()]):
+            for paths in wi.get('paths'):
+                if paths.get('include'):
+                    for path in paths.get('include'):
+                        cmd.append("--include='{}'".format(_glob_to_regex(path)))
+                elif paths.get('exclude'):
+                    for path in paths.get('exclude'):
+                        cmd.append("--exclude='{}'".format(_glob_to_regex(path)))
+
+            paths_to_watch.append(
+                        os.path.join(wi['source_root'], wi.get('source','')) + '/')
+        for pp in paths_to_watch:
+            cmd.append(pp)
+        strcmd = " ".join(cmd)
+        logging.info(strcmd)
+        proc = subprocess.Popen(
+            strcmd,
+            shell=True,
+            bufsize=1, # line buffered
+            stdout=subprocess.PIPE,
+            #stderr=subprocess.PIPE,
+            close_fds=ON_POSIX
+            )
+        t = Thread(target=enqueue_output, args=(proc,wi))
+        t.daemon = True  # thread dies with the program
+        t.start()
+    logging.debug("FSW:LL")
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--usessh', '-s', action="store_false",
+                                default=True,
+                                help="use_ssh")
+parser.add_argument('--level', '-l', default='error',
+                    help="Pass debug,info or error to set the debug level")
+parser.add_argument('--dryrun', '-n', action="store_true", default=False)
+parser.add_argument("hosts", nargs="*", help="host to sync, leave it empty to include all hosts", default='')
+args = parser.parse_args(sys.argv[1:])
+
+
+logging.getLogger().setLevel({
+    'info': logging.INFO,
+    'debug': logging.DEBUG,
+    'error': logging.ERROR,
+    'warning': logging.WARNING
+}[args.level])
+
+# mark all needed hosts to rsync when we start
+def start_thread_to_ssh():
+    hosts_to_ssh = {}
+    def ensure_ssh_hosts():
+        while True:
+            for host in hosts_to_ssh.values():
+                if host['sshproc']:
+                    host['sshproc'].poll()
+                #logging.info("%s %s",host, host['sshproc'].returncode if host['sshproc'] else '???')
+                if host['sshproc'] is None or host['sshproc'].returncode != None:
+                    logging.info(host['sshcmd'])
+                    try:
+                        host['sshproc'] = subprocess.Popen(
+                            host['sshcmd'],
+                            shell=True,
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE)
+                    except Exception as ex:
+                        logging.warning("EXC: %s", ex)
+            time.sleep(30)
+
+    #for wsi in workspace_instances:
+    #    for host in wsi['targets']:
+    for host in myhosts.hosts:
+        if not args.hosts or  host['name'] in args.hosts:
+            host['needsync'] = 1
+            hosts_to_ssh[host['name']] = {
+                'name': host['name'],
+                'sshproc': None,
+                'sshcmd': 'sudo ssh -F ~/.ssh/config -T ' + host['name'] + '-ports'
+            }
+    t = Thread(target=ensure_ssh_hosts)
+    t.daemon = True
+    t.start()
+
+def main():
+    start_thread_to_ssh()
+    fswatch(args.hosts)
+    while True:
+        try:
+            (line,ws) = g_queue.get(timeout=.1)
+            logging.debug('CONS %s %s', ws['name'], line)
+            deal_with_changed_file(ws,line)
+        except Empty:
+            pass
+        for wsi in workspaces:
+            for host in Workspace(wsi).get_targets():
+                if args.hosts and not host['name'] in args.hosts:
+                    continue
+                proc = host.get('rsyncproc')
+                if proc:
+                    proc.poll()
+                    if proc.returncode is None:
+                        #logging.debug("SKIP:SYNC %s:%s", wsi['name'], host['name'])
+                        continue
+                    else:
+                        logging.info("RET:CODE %s:%s=%s", wsi['name'],
+                                     host['name'],
+                                      proc.returncode)
+                        host['rsyncproc'] = None
+                if host.get('needsync') == 0:
+                    continue
+                cmd = rsync(wsi, host)
+                logging.info("START:SYNC {}:{} {}".format(wsi['name'],
+                                                host['name'], " ".join(cmd)))
+                host['rsyncproc'] = subprocess.Popen(cmd)
+                host['needsync'] = 0
+
+try:
+    os.setpgrp()
+    main()
+except Exception as ex:
+    logging.error("%s", ex)
+finally:
+    import signal
+    os.killpg(0, signal.SIGINT)
+    time.sleep(5)
+    os.killpg(0, signal.SIGKILL)
+

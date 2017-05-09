@@ -1,0 +1,154 @@
+#!/usr/bin/env python
+
+import argparse
+import os
+import subprocess
+import logging
+import sys
+
+from sd2 import myhosts
+
+def create_start_docker(hostname):
+    ns_host_ip = myhosts.get_container_ip(hostname)
+    ports = myhosts.get_container_ports(hostname)
+    ns_host_ports = ' '.join(['{}:{}'.format(ns_host_ip,x) for x in ports])
+    ns_extra_args = myhosts.get_container_extra_flags(hostname)
+
+    cmd = [
+        'sudo',
+        'docker',
+        'run',
+        '--detach',
+        '--privileged',
+        '--name={}'.format(hostname),
+        '--hostname={}'.format(hostname),
+        '--env', 'USER={}'.format(os.getenv('USER')),
+        '--env', 'USER_ID={}'.format(
+            subprocess.check_output(['id', '-u']).rstrip()),
+        '--env', 'GROUP_ID={}'.format(
+            subprocess.check_output(['id', '-g']).rstrip()),
+        '--volume', '{}:/home/{}'.format(os.getenv('HOME'), os.getenv('USER'))
+    ]
+    if os.path.exists('/etc/localtime'):
+        cmd.extend(['--volume', '/etc/localtime:/etc/localtime:ro'])
+    if os.path.exists('/etc/timezone'):
+        cmd.extend(['--volume', '/etc/timezone:/etc/timezone:ro'])
+    if os.path.exists('/mnt'):
+        cmd.extend(['--volume', '/mnt:/mnt'])
+
+    for ports in ns_host_ports.split():
+        cmd.append('--publish')
+        cmd.append(ports)
+
+    cmd.extend(['--workdir', '/home/' + os.getenv('USER')])
+    cmd.append('--tty')
+    if isinstance(ns_extra_args, basestring):
+        ns_extra_args.split()
+    for arg in ns_extra_args.split():
+        cmd.append(arg)
+    cmd.append(myhosts.get_container_docker_image(hostname))
+    cmd.append(myhosts.get_container_command(hostname))
+
+    command = ' '.join(cmd)
+    if (not args.dryrun):
+        logging.info("EXEC %s", command)
+        os.system(command)
+    else:
+        print(command)
+
+def find_id_of_container(container_name):
+    containers = subprocess.check_output(
+        ["sudo", "docker", "ps", "-qa"])
+    cmd = [
+        "sudo", "docker", "inspect", "-f",
+        '{{.Id}},{{.Config.Hostname}}',
+    ] + containers.split()
+    inspout = subprocess.check_output(cmd)
+    ids = [line.split(',')[0] for line in inspout.split() if
+        line.split(',')[1].startswith(container_name)]
+    return None if not ids else ids[0]
+
+def create_start_docker_if_needed(hostname):
+    running = None
+    containers = subprocess.check_output(
+        ["sudo", "docker", "ps", "-qa"])
+    if containers:
+        cmd = [
+            "sudo", "docker", "inspect", "-f",
+            '{{.State.Running}},{{.Config.Hostname}}',
+        ] + containers.split()
+        inspout = subprocess.check_output(cmd)
+        running = [line.split(',')[0] for line in inspout.split() if
+                            line.split(',')[1].startswith(hostname)]
+
+    if running == ['true']:
+        print(hostname + ' Found running...')
+        # cmd = 'sudo docker exec -i -t {} su - {}'.format(
+        #     hostname, os.getenv('USER'))
+        # if not args.dryrun:
+        #     subprocess.Popen(cmd.split())
+        # else:
+        #     print(cmd)
+    else:
+        if running == ['false']:
+            print(hostname + ' Found stopped and removing. ')
+            contid = find_id_of_container(hostname)
+            cmd = "sudo docker rm -f " + contid
+            if not args.dryrun:
+                logging.debug("EXEC: {}".format(cmd))
+                os.system(cmd)
+            else:
+                print(cmd)
+        else:
+            print(hostname + ' Not Found. ')
+        print(hostname + ' Creating a new one...')
+        create_start_docker(hostname)
+    cmd = 'sudo docker exec -i -t {} su - {}'.format(
+        hostname, os.getenv('USER'))
+    print "Attach by running: '{}'".format(cmd)
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--level', '-l', default='error',
+                    help="Pass debug,info,error to set the debug level")
+parser.add_argument('--dryrun', '-n', action="store_true", default=False)
+parser.add_argument('--all', '-a', action="store_true", default=False,
+                    help="Used to restart all containers in this host")
+parser.add_argument("containers", nargs="*",
+                    help="containers to start, leave it empty and pass --all to restart all of them",
+                    default='')
+args = parser.parse_args(sys.argv[1:])
+
+logging.getLogger().setLevel({
+    'info': logging.INFO,
+    'debug': logging.DEBUG,
+    'error': logging.ERROR,
+    'warning': logging.WARNING
+}[args.level])
+
+containers = []
+if not args.containers and args.all:
+    hostname = subprocess.check_output('hostname').rstrip()
+    containers = myhosts.get_container_names(hostname)
+    for cont in containers:
+        cmd = "sudo docker rm -f " + cont
+        if not args.dryrun:
+            logging.info("EXEC: " + cmd)
+            os.system(cmd)
+        else:
+            print(cmd)
+    #containers = ' '.join([x[len(hostname) + 1:] for x in conts])
+    for cont in containers:
+        create_start_docker(cont)
+if args.containers:
+    for cont in args.containers:
+        create_start_docker_if_needed(cont)
+logging.debug("Starting %s", containers)
+
+
+
+
+
+
+
+
