@@ -1,9 +1,13 @@
-#!/usr/bin/env python
 #############################################################################
 # Copyright (c) 2017 SiteWare Corp. All right reserved
 #############################################################################
 
-from .config import config_dct, has_timestamp_changed
-from .myhosts import hosts, hostsdict, imagesdict
+SOURCES := $(shell find . -name '*.py')
 
-__version__='0.9.0'
+lint_and_test: export PYTHONPATH=$PYTHONPATH:lib
+all: lint FORCE
+
+lint: FORCE
+	pylint -E $(SOURCES)
+
+FORCE:

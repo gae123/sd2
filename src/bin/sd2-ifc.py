@@ -10,7 +10,7 @@ from sd2 import hosts
 if sys.argv[1] == 'Darwin':
     cmd = "sudo ifconfig lo0 alias {}"
 else:
-    cmd = "sudo ip addr add {} dev lo"
+    cmd = "sudo ip addr replace {} dev lo"
 
 for host in hosts:
     os.system(cmd.format(host['local-ip']))

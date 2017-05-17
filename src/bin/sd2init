@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
 sd2-ifc.py $(uname)
-sudo PYTHONPATH=$PYTHONPATH sd2-gen-hosts.py
+sudo PYTHONPATH=$PYTHONPATH `type -p sd2-gen-hosts.py`
 sd2-gen-ssh-config.py

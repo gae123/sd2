@@ -15,7 +15,9 @@ need one machine (e.g. a MacOS notebook) with docker installed that will
  play the role of both the editor and the development machine.
 
 1. Editor Machine Requirements
-   1. Python 2.7 with additional packages: python_hosts jinja2
+   1. Python 2.7 with additional packages: python_hosts,jinja2,pyyaml
+   1. fswatch (see [here](http://stackoverflow.com/questions/1515730/is-there-a-command-like-watch-or-inotifywait-on-the-mac))
+   1. Add your user to sudoers (see [here](https://askubuntu.com/questions/168461/how-do-i-sudo-without-having-to-enter-my-password))
 1. Development Machine Requirements
    1. docker 
 

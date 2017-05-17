@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+#############################################################################
+# Copyright (c) 2017 SiteWare Corp. All right reserved
+#############################################################################
 
 import argparse
 import os
@@ -111,6 +114,7 @@ def create_start_docker_if_needed(hostname):
 parser = argparse.ArgumentParser()
 parser.add_argument('--level', '-l', default='error',
                     help="Pass debug,info,error to set the debug level")
+parser.add_argument('--version', '-v', action="store_true", default=False)
 parser.add_argument('--dryrun', '-n', action="store_true", default=False)
 parser.add_argument('--all', '-a', action="store_true", default=False,
                     help="Used to restart all containers in this host")
@@ -125,6 +129,10 @@ logging.getLogger().setLevel({
     'error': logging.ERROR,
     'warning': logging.WARNING
 }[args.level])
+
+if args.version:
+    import sd2
+    print sd2.__version__
 
 containers = []
 if not args.containers and args.all:

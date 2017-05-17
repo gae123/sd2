@@ -13,6 +13,8 @@ import sys
 
 __all__=('config_dct')
 
+root_dir = os.path.join(os.getenv('HOME'), '.sd2')
+
 
 def process_expansions(dct):
     def expand(val, dct):
@@ -83,7 +85,8 @@ def process_inheritance(config_dct, keys):
             for key in ['abstract', 'extends']:
                 if dct.get(key) is not None:
                     del dct[key]
-            process_expansions(dct)
+            if not isabstract:
+                process_expansions(dct)
             hostsdict[dct['name']] = dct
             if not disabled and not isabstract:
                 rr.append(dct)
@@ -91,10 +94,22 @@ def process_inheritance(config_dct, keys):
         config_dct[tlkey] = rr
 
 
+def get_max_timestamp():
+    rr = 0
+    for name in os.listdir(root_dir):
+        path = os.path.join(root_dir,name)
+        rr = max(rr, os.path.getmtime(path))
+    return rr
+
+initial_timestamp = get_max_timestamp()
+
+def has_timestamp_changed():
+    current_timestamp = get_max_timestamp()
+    return current_timestamp > initial_timestamp
+
 config_dct = {}
 def init():
-    global config_dct
-    root_dir = os.path.join(os.getenv('HOME'), '.sd2')
+    global config_dct, root_dir
 
     if not os.path.exists(root_dir):
         sys.stderr.write('ERROR: Configuration directory {} does not exist.\n'.format(
@@ -116,7 +131,7 @@ def init():
             template_env = jinja2.Environment(
                 loader=jinja2.FileSystemLoader(root_dir))
             templ = template_env.get_template('config.yaml')
-            output = templ.render(ctx)
+            output = templ.render(ctx) # pylint: disable-msg=E1101
         else:
             with open(os.path.join(root_dir, 'config.yaml')) as fd:
                 output = fd.read()

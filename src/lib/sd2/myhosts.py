@@ -24,11 +24,12 @@ for host in hosts:
     containers = []
     host_name = host['name']
     for cont,imagename in enumerate(host.get('containers', [])):
-        cont = {'ip': "172.172.{}.{}".format(base, 101 + cont),
-                'image': imagesdict[imagename] if isinstance(imagename,basestring) else imagesdict[imagename['imagename']],
-                'image_name': imagename if isinstance(imagename,basestring) else imagename['imagename'],
-                'name': "{}-{}".format(host_name, (cont if isinstance(imagename,basestring) else imagename['name'])),
-                }
+        cont = {
+            'ip': "172.172.{}.{}".format(base, 101 + cont),
+            'image': imagesdict[imagename] if isinstance(imagename,basestring) else imagesdict[imagename['imagename']],
+            'image_name': imagename if isinstance(imagename,basestring) else imagename['imagename'],
+            'name': "{}-{}".format(host_name, (cont if isinstance(imagename,basestring) else imagename['name'])),
+        }
         containers.append(cont)
         containersdict[cont['name']] = cont
     host['containers'] = containers

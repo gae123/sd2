@@ -61,7 +61,15 @@ host {cont[name]}
     ServerAliveInterval 60
 '''
 
-ssh_option_names = ['HostName', 'Port', 'User', 'IdentityFile', 'ServerAliveInterval']
+ssh_option_names = [
+    'HostName',
+    'Port',
+    'User',
+    'IdentityFile',
+    'ServerAliveInterval',
+    'StrictHostKeyChecking',
+    'UserKnownHostsFile'
+]
 
 
 def get_our_ssh_config():

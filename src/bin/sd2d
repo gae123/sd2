@@ -4,14 +4,16 @@
 #############################################################################
 
 import argparse
+import fcntl
 import fnmatch
 import logging
 import os
 import subprocess
 import sys
 import time
+import datetime
 from threading  import Thread
-from sd2 import config_dct,myhosts
+from sd2 import config_dct,myhosts, has_timestamp_changed
 
 try:
     from Queue import Queue, Empty
@@ -41,6 +43,11 @@ class Workspace(object):
         for host in hosts:
             assert 'name' in host
         return hosts
+
+def slash_ending(path):
+    if not path.endswith(os.path.sep):
+        path += os.path.sep
+    return path
 
 ################################################################################
 
@@ -105,6 +112,7 @@ def deal_with_changed_file(wi, fpath):
 
 g_observers = []
 
+# For rsync --exclude and --include are followed in order. If something is
 def rsync(ws, host):
     cmd = ['rsync',
            '-rlptgoOzv'
@@ -124,9 +132,11 @@ def rsync(ws, host):
     if args.usessh:
         cmd.append('-e')
         cmd.append('ssh')
-    cmd.append(os.path.join(ws['source_root'], ws.get("source", "")) + '/')
+    path = os.path.join(ws['source_root'], ws.get("source", ""))
+    cmd.append(slash_ending(path))
     dest_root = ws.get('dest_root', ws['source_root']).replace(os.environ.get('HOME'), '~')
-    cmd.append("{}:{}/".format(host['name'], os.path.join(dest_root, ws.get("source", ""))))
+    cmd.append("{}:{}".format(host['name'],
+            slash_ending(os.path.join(dest_root, ws.get("source", "")))))
     return cmd
 
 
@@ -141,7 +151,10 @@ def _glob_to_regex(ss):
     return rr
 
 
-def fswatch(host):
+# fswatch includes everything in --include if exists. Then checks --exclude
+# Order does not matter
+# http://emcrisostomo.github.io/fswatch/doc/1.4.3/pdf/fswatch.pdf
+def start_threads_to_fswatch(host):
     logging.debug("FSW:EE")
     assert host == '' or isinstance(host, list)
     for wi in workspaces:
@@ -166,11 +179,13 @@ def fswatch(host):
                         cmd.append("--exclude='{}'".format(_glob_to_regex(path)))
 
             paths_to_watch.append(
-                        os.path.join(wi['source_root'], wi.get('source','')) + '/')
+                        os.path.join(wi['source_root'], wi.get('source','')))
         for pp in paths_to_watch:
+            if not pp.endswith(os.path.sep):
+                pp += '/'
             cmd.append(pp)
         strcmd = " ".join(cmd)
-        logging.info(strcmd)
+        logging.info("%s %s", wi['name'], strcmd)
         proc = subprocess.Popen(
             strcmd,
             shell=True,
@@ -182,6 +197,7 @@ def fswatch(host):
         t = Thread(target=enqueue_output, args=(proc,wi))
         t.daemon = True  # thread dies with the program
         t.start()
+        time.sleep(.1)
     logging.debug("FSW:LL")
 
 
@@ -189,12 +205,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--usessh', '-s', action="store_false",
                                 default=True,
                                 help="use_ssh")
+parser.add_argument('--version', '-v', action="store_true", default=False)
 parser.add_argument('--level', '-l', default='error',
                     help="Pass debug,info or error to set the debug level")
 parser.add_argument('--dryrun', '-n', action="store_true", default=False)
 parser.add_argument("hosts", nargs="*", help="host to sync, leave it empty to include all hosts", default='')
 args = parser.parse_args(sys.argv[1:])
-
 
 logging.getLogger().setLevel({
     'info': logging.INFO,
@@ -202,6 +218,10 @@ logging.getLogger().setLevel({
     'error': logging.ERROR,
     'warning': logging.WARNING
 }[args.level])
+
+if args.version:
+    import sd2
+    print sd2.__version__
 
 # mark all needed hosts to rsync when we start
 def start_thread_to_ssh():
@@ -211,23 +231,42 @@ def start_thread_to_ssh():
             for host in hosts_to_ssh.values():
                 if host['sshproc']:
                     host['sshproc'].poll()
+                    while (True):
+                        try:
+                            line = host['sshproc'].stderr.readline()
+                        except IOError:
+                            break
+                        if line:
+                            sys.stdout.write("SSH {}: {}".format(
+                                host['name'], line))
+                        else:
+                            break
                 #logging.info("%s %s",host, host['sshproc'].returncode if host['sshproc'] else '???')
                 if host['sshproc'] is None or host['sshproc'].returncode != None:
+                    if host['sshproc'] and host['sshproc'].returncode != None:
+                        logging.info("SSH:RET:CODE %s=%s",
+                                     host['sshcmd'],
+                                     host['sshproc'].returncode)
                     logging.info(host['sshcmd'])
                     try:
                         host['sshproc'] = subprocess.Popen(
                             host['sshcmd'],
                             shell=True,
                             stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE)
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            close_fds=ON_POSIX)
+
                     except Exception as ex:
-                        logging.warning("EXC: %s", ex)
-            time.sleep(30)
+                        logging.warning("SSH:START:EXC: %s", ex)
+                    fl = fcntl.fcntl(host['sshproc'].stderr, fcntl.F_GETFL)
+                    fcntl.fcntl(host['sshproc'].stderr, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+            time.sleep(15)
 
     #for wsi in workspace_instances:
     #    for host in wsi['targets']:
     for host in myhosts.hosts:
-        if not args.hosts or  host['name'] in args.hosts:
+        if not args.hosts or host['name'] in args.hosts:
             host['needsync'] = 1
             hosts_to_ssh[host['name']] = {
                 'name': host['name'],
@@ -237,11 +276,31 @@ def start_thread_to_ssh():
     t = Thread(target=ensure_ssh_hosts)
     t.daemon = True
     t.start()
+    time.sleep(.1)
+
+class RestartEcxeption(Exception):
+    pass
+
+parent_group = None
+def terminate():
+    import signal
+    os.killpg(parent_group, signal.SIGINT)
+    time.sleep(5)
+    os.killpg(parent_group, signal.SIGKILL)
+
+def restart():
+    if os.fork():
+       raise RestartEcxeption()
+    else:
+        print "CCCC " + str(sys.argv)
+        os.execv(sys.argv[0], sys.argv[1:])
 
 def main():
     start_thread_to_ssh()
-    fswatch(args.hosts)
+    start_threads_to_fswatch(args.hosts)
     while True:
+        #if has_timestamp_changed():
+        #    restart()
         try:
             (line,ws) = g_queue.get(timeout=.1)
             logging.debug('CONS %s %s', ws['name'], line)
@@ -263,22 +322,35 @@ def main():
                                      host['name'],
                                       proc.returncode)
                         host['rsyncproc'] = None
+                        host['lastsync'] = datetime.datetime.now()
+                        while (True):
+                            line = proc.stdout.readline()
+                            if line:
+                                sys.stdout.write("RSYNC {} - {}: {}".format(
+                                    wsi['name'],host['name'],line))
+                            else:
+                                break
+                # Every 15 minutes rsync
+                if (host.get('lastsync') and
+                    (datetime.datetime.now() - host['lastsync']).seconds > 15 * 60 * 60):
+                    host['needsync'] = 1
                 if host.get('needsync') == 0:
                     continue
                 cmd = rsync(wsi, host)
-                logging.info("START:SYNC {}:{} {}".format(wsi['name'],
+                logging.info("RSYNC {}:{} {}".format(wsi['name'],
                                                 host['name'], " ".join(cmd)))
-                host['rsyncproc'] = subprocess.Popen(cmd)
+                host['rsyncproc'] = subprocess.Popen(cmd,
+                                                     stdout=subprocess.PIPE,
+                                                     stderr=subprocess.STDOUT,
+                                                     close_fds=ON_POSIX)
                 host['needsync'] = 0
 
 try:
-    os.setpgrp()
     main()
+except RestartEcxeption:
+    pass
 except Exception as ex:
     logging.error("%s", ex)
 finally:
-    import signal
-    os.killpg(0, signal.SIGINT)
-    time.sleep(5)
-    os.killpg(0, signal.SIGKILL)
+    terminate()
 
