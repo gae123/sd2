@@ -1,11 +1,11 @@
-# SD<sup>2</sup>: Software Defined Software Development™
-The Software Defined Software Development Process aka SD<sup>2</sup> is 
+# sd<sup>2</sup>: Software Defined Software Development™
+The Software Defined Software Development Process aka sd<sup>2</sup> is 
 a modern Software Development approach that aims to simplify the 
 complexity that usually accompanies working with multiple projects 
 each with multiple branches and potentially each with its own
-stack. SD<sup>2</sup> relies heavily on a **single** text 
+stack. sd<sup>2</sup> relies heavily on a **single** text 
 file that describes a developer's development environments and in containers 
-that isolate the different environments. SD<sup>2</sup> seperates the editing 
+that isolate the different environments. sd<sup>2</sup> seperates the editing 
 environment from the environment where compilation and testing takes place. 
 In some sense, we bring the advantages of a microservices environment to 
 the development phase even when you do not use microservices in production.
@@ -24,11 +24,9 @@ need one machine (e.g. a MacOS notebook) with docker installed that will
 1. Development Machine Requirements
    1. docker 
 
-## What is not covered by SD<sup>2</sup>
+## What is not covered by sd<sup>2</sup>
 
 1. Bring your own editor/IDE. We are agnostic how you edit your source code.
 1. Bring your own container images. We do not provide tools to generate
  docker images, we expect that are already available and published in 
  a local or remote repository.
-
-More coming soon...
