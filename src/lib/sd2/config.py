@@ -13,7 +13,7 @@ import sys
 
 __all__=('config_dct')
 
-root_dir = os.path.join(os.getenv('HOME'), '.sd2')
+g_root_dir = os.path.join(os.getenv('HOME'), '.sd2')
 
 
 def process_expansions(dct):
@@ -96,44 +96,43 @@ def process_inheritance(config_dct, keys):
 
 def get_max_timestamp():
     rr = 0
-    for name in os.listdir(root_dir):
-        path = os.path.join(root_dir,name)
+    for name in os.listdir(g_root_dir):
+        path = os.path.join(g_root_dir, name)
         rr = max(rr, os.path.getmtime(path))
     return rr
 
-initial_timestamp = get_max_timestamp()
 
-def has_timestamp_changed():
+def has_timestamp_changed(config_dct):
     current_timestamp = get_max_timestamp()
-    return current_timestamp > initial_timestamp
+    return current_timestamp > config_dct['read_timestamp']
 
-config_dct = {}
-def init():
-    global config_dct, root_dir
 
-    if not os.path.exists(root_dir):
+def read_config():
+    global g_root_dir, initial_timestamp
+
+    if not os.path.exists(g_root_dir):
         sys.stderr.write('ERROR: Configuration directory {} does not exist.\n'.format(
-            root_dir))
+            g_root_dir))
         sys.exit(1)
 
-    configpy_path = os.path.join(root_dir, 'config.py')
+    configpy_path = os.path.join(g_root_dir, 'config.py')
     if os.path.exists(configpy_path):
         json_text = subprocess.check_output(configpy_path)
         ctx = json.loads(json_text)
     else:
         ctx = {}
 
-    if os.path.exists(os.path.join(root_dir, 'config.yaml')):
-        with open(os.path.join(root_dir, 'config.yaml'), 'r') as fd:
+    if os.path.exists(os.path.join(g_root_dir, 'config.yaml')):
+        with open(os.path.join(g_root_dir, 'config.yaml'), 'r') as fd:
             first_line = fd.readline()
         first_line = first_line.strip()
         if first_line == '#!jinja2':
             template_env = jinja2.Environment(
-                loader=jinja2.FileSystemLoader(root_dir))
+                loader=jinja2.FileSystemLoader(g_root_dir))
             templ = template_env.get_template('config.yaml')
             output = templ.render(ctx) # pylint: disable-msg=E1101
         else:
-            with open(os.path.join(root_dir, 'config.yaml')) as fd:
+            with open(os.path.join(g_root_dir, 'config.yaml')) as fd:
                 output = fd.read()
     else:
         output = ''
@@ -145,6 +144,7 @@ def init():
     process_inheritance(config_dct, ['hosts', 'workspaces'])
     process_expansions(config_dct)
     #print json.dumps(config_dct, indent=2)
+    config_dct['read_timestamp'] = get_max_timestamp()
     return config_dct
-init()
+
 

@@ -3,7 +3,7 @@
 
 import datetime
 
-from sd2 import hosts
+import sd2
 from python_hosts import Hosts, HostsEntry
 
 comment_magic = 'AUTOGEN-'
@@ -15,7 +15,7 @@ names = [h.names[0] for h in etchosts.entries if (h and h.names and [x for x in 
 for name in names:
     etchosts.remove_all_matching(name=name)
 
-for host in hosts:
+for host in sd2.get_hosts():
     etchosts.add(
         [HostsEntry(
             entry_type='ipv4',

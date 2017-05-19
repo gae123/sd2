@@ -9,13 +9,13 @@ import subprocess
 import logging
 import sys
 
-from sd2 import myhosts
+import sd2
 
 def create_start_docker(hostname):
-    ns_host_ip = myhosts.get_container_ip(hostname)
-    ports = myhosts.get_container_ports(hostname)
+    ns_host_ip = sd2.myhosts.get_container_ip(hostname)
+    ports = sd2.myhosts.get_container_ports(hostname)
     ns_host_ports = ' '.join(['{}:{}'.format(ns_host_ip,x) for x in ports])
-    ns_extra_args = myhosts.get_container_extra_flags(hostname)
+    ns_extra_args = sd2.myhosts.get_container_extra_flags(hostname)
 
     cmd = [
         'sudo',
@@ -49,8 +49,8 @@ def create_start_docker(hostname):
         ns_extra_args.split()
     for arg in ns_extra_args.split():
         cmd.append(arg)
-    cmd.append(myhosts.get_container_docker_image(hostname))
-    cmd.append(myhosts.get_container_command(hostname))
+    cmd.append(sd2.myhosts.get_container_docker_image(hostname))
+    cmd.append(sd2.myhosts.get_container_command(hostname))
 
     command = ' '.join(cmd)
     if (not args.dryrun):
@@ -137,7 +137,7 @@ if args.version:
 containers = []
 if not args.containers and args.all:
     hostname = subprocess.check_output('hostname').rstrip()
-    containers = myhosts.get_container_names(hostname)
+    containers = sd2.myhosts.get_container_names(hostname)
     for cont in containers:
         cmd = "sudo docker rm -f " + cont
         if not args.dryrun:

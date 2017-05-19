@@ -5,14 +5,14 @@
 
 import os
 import sys
-from sd2 import hosts
+import sd2
 
 if sys.argv[1] == 'Darwin':
     cmd = "sudo ifconfig lo0 alias {}"
 else:
     cmd = "sudo ip addr replace {} dev lo"
 
-for host in hosts:
+for host in sd2.get_hosts():
     os.system(cmd.format(host['local-ip']))
     for cont in host.get('containers'):
         os.system(cmd.format(cont['ip']))

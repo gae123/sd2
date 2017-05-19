@@ -4,7 +4,7 @@ import datetime
 import os
 import sys
 
-from sd2 import hosts, hostsdict, imagesdict
+import sd2
 
 g_seperator_start = '################# SDSD starts here - DO NOT CHANGE BELOW #######################'
 g_seperator_end = '################# SDSD ends here - DO NOT CHANGE ABOVE ########################'
@@ -45,7 +45,6 @@ def write_ssh_config(before, rr, after):
             fd.write(line + '\n')
 
 
-
 def read_and_split_ssh_config():
     contents = read_ssh_config()
 
@@ -74,7 +73,7 @@ ssh_option_names = [
 
 def get_our_ssh_config():
     rr = ''
-    for host in hosts:
+    for host in sd2.get_hosts():
         try:
             rr += '''\n########## GENERATED DO NOT MODIFY #####################\n'''
             if host.get('match'):
