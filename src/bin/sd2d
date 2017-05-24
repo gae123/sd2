@@ -5,14 +5,12 @@
 
 import argparse
 import fcntl
-import fnmatch
 import logging
 import os
 import subprocess
 import sys
 import time
 import datetime
-from threading  import Thread
 import sd2
 
 ON_POSIX = 'posix' in sys.builtin_module_names
@@ -26,6 +24,7 @@ class Workspace(object):
 
     def get_targets(self):
         hosts = self._node.get('targets', [])
+        hosts = [x for x in hosts if sd2.myhosts.is_enabled(x['name'])]
         for host in hosts:
             assert 'name' in host
         return hosts
@@ -37,7 +36,38 @@ def slash_ending(path):
 
 ################################################################################
 
+# def resync_reg_exp_match(root, apath, ipath):
+#     if not apath.startswith(root):
+#         return False
+#     rpath = apath[len(root)-1:]
+#     aipath = ipath.split('/')
+#     arpath = rpath.split('/')
+#     while len(aipath) and len(arpath):
+#         if aipath[0] == arpath[0]:
+#             aipath.pop(0)
+#             arpath.pop(0)
+#             continue
+#         if ipath[0] == '*':
+#             aipath.pop(0)
+#             arpath.pop(0)
+#             continue
+#         if aipath[0] == '**':
+#             while len(aipath) and len(arpath) and
+
+def convert_rsync_to_regex(path):
+    rr = path
+    if not rr.startswith('/'):
+        rr = '**/' + rr
+    rr = rr.replace('.', '\\.')
+    rr = rr.replace('**', '__EVERYTHING__')
+    rr = rr.replace('*', '__ONELEVEL__')
+    rr = rr.replace('__EVERYTHING__', '.*')
+    rr = rr.replace('__ONELEVEL__', '[^/]*')
+    return rr
+    
+
 def workspace_instance_has_path(wi, apath):
+    import re
     full_path = os.path.join(wi['source_root'], wi.get('source', ''))
     if not full_path.endswith(os.path.sep):
         full_path += os.path.sep
@@ -48,8 +78,8 @@ def workspace_instance_has_path(wi, apath):
                 found = False
                 for ipath in paths.get('include'):
                     logging.debug("CNS:INCL:%s (%s) %s", ipath, apath, full_path)
-                    if (fnmatch.fnmatch(apath, ipath) or
-                        ipath in apath):
+                    ripath = convert_rsync_to_regex(ipath)
+                    if (re.match(r'^' + wi['source_root'].rstrip('/') + ripath + r'$', apath)):
                         logging.debug("FOUND:INCL:%s (%s)", ipath, apath)
                         found = True
                         break
@@ -60,10 +90,9 @@ def workspace_instance_has_path(wi, apath):
             if paths.get('exclude'):
                 for epath in paths.get('exclude'):
                     logging.debug("CNS:EXCL:%s (%s)", epath, apath)
-                    if (epath in apath or
-                        fnmatch.fnmatch(apath, epath)):
-                            logging.debug("EXCL %s from %s", apath,
-                                          wi['name'])
+                    repath = convert_rsync_to_regex(epath)
+                    if (re.match(r'^' + wi['source_root'].rstrip('/') + repath + r'$', apath)):
+                            logging.debug("EXCL %s from %s", apath, wi['name'])
                             return False
         return True
     return False
@@ -166,11 +195,11 @@ class FSWatcher(object):
                     if paths.get('include'):
                         for path in paths.get('include'):
                             cmd.append(
-                                "--include='{}'".format(_glob_to_regex(path)))
+                                "--include='{}'".format(convert_rsync_to_regex(path)))
                     elif paths.get('exclude'):
                         for path in paths.get('exclude'):
                             cmd.append(
-                                "--exclude='{}'".format(_glob_to_regex(path)))
+                                "--exclude='{}'".format(convert_rsync_to_regex(path)))
 
                 paths_to_watch.append(
                     os.path.join(wi['source_root'], wi.get('source', '')))
@@ -239,6 +268,8 @@ class SSHConnections(object):
     def __init__(self):
         self.hosts_to_ssh = {}
         for host in sd2.myhosts.hosts:
+            if sd2.myhosts.is_disabled(host['name']):
+                continue
             if not g_args.hosts or host['name'] in g_args.hosts:
                 host['needsync'] = 1
                 self.hosts_to_ssh[host['name']] = {
