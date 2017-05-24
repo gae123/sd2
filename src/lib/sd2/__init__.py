@@ -4,6 +4,6 @@
 #############################################################################
 
 from .config import read_config, has_timestamp_changed
-from .myhosts import get_hosts
+from .myhosts import get_hosts, get_hosts_dict
 
 __version__='0.9.0'
