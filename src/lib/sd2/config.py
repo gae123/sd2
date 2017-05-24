@@ -15,6 +15,22 @@ __all__=('config_dct')
 
 g_root_dir = os.path.join(os.getenv('HOME'), '.sd2')
 
+def ensure_base(hosts):
+    hosts_by_base = {}
+    for ii, host in enumerate(hosts):
+        if host.get('base') is None:
+            sys.stderr.write(
+                "ERROR: base address for {} was not found.\n".format(
+                    host['name']))
+            sys.exit(1)
+        base = host.get('base')
+        if hosts_by_base.get(base) is not None:
+            sys.stderr.write(
+                "ERROR: {} and {} have the same base {}.\n".format(
+                    host['name'], hosts_by_base[base][0], base))
+            sys.exit(1)
+        hosts_by_base[base] = [host['name']]
+
 
 def process_expansions(dct):
     def expand(val, dct):
@@ -143,6 +159,7 @@ def read_config():
         sys.exit(1)
     process_inheritance(config_dct, ['hosts', 'workspaces'])
     process_expansions(config_dct)
+    ensure_base(config_dct['hosts'])
     #print json.dumps(config_dct, indent=2)
     config_dct['read_timestamp'] = get_max_timestamp()
     return config_dct
