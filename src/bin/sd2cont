@@ -71,6 +71,15 @@ def find_id_of_container(container_name):
         line.split(',')[1].startswith(container_name)]
     return None if not ids else ids[0]
 
+def remove_container_by_hostname(hostname):
+    contid = find_id_of_container(hostname)
+    cmd = "sudo docker rm -f " + contid
+    if not args.dryrun:
+        logging.debug("EXEC: {}".format(cmd))
+        os.system(cmd)
+    else:
+        print(cmd)
+
 def create_start_docker_if_needed(hostname):
     running = None
     containers = subprocess.check_output(
@@ -78,32 +87,31 @@ def create_start_docker_if_needed(hostname):
     if containers:
         cmd = [
             "sudo", "docker", "inspect", "-f",
-            '{{.State.Running}},{{.Config.Hostname}}',
+            '{{.State.Running}},{{.Config.Hostname}},{{.Config.Image}}',
         ] + containers.split()
         inspout = subprocess.check_output(cmd)
         running = [line.split(',')[0] for line in inspout.split() if
                             line.split(',')[1].startswith(hostname)]
+        image = [line.split(',')[2] for line in inspout.split() if
+                            line.split(',')[1].startswith(hostname)]
 
+    create_new_one = False
     if running == ['true']:
-        print(hostname + ' Found running...')
-        # cmd = 'sudo docker exec -i -t {} su - {}'.format(
-        #     hostname, os.getenv('USER'))
-        # if not args.dryrun:
-        #     subprocess.Popen(cmd.split())
-        # else:
-        #     print(cmd)
+        if image[0] == sd2.myhosts.get_container_docker_image(hostname):
+            print(hostname + ': Found running...')
+        else:
+            print(hostname + ': Found running a different image {} and removing.'.format(image))
+            remove_container_by_hostname(hostname)
+            create_new_one = True
     else:
         if running == ['false']:
-            print(hostname + ' Found stopped and removing. ')
-            contid = find_id_of_container(hostname)
-            cmd = "sudo docker rm -f " + contid
-            if not args.dryrun:
-                logging.debug("EXEC: {}".format(cmd))
-                os.system(cmd)
-            else:
-                print(cmd)
+            print(hostname + ': Found stopped and removing. ')
+            remove_container_by_hostname(hostname)
+            create_new_one = True
         else:
-            print(hostname + ' Not Found. ')
+            print(hostname + ': Not Found. ')
+            create_new_one = True
+    if create_new_one:
         print(hostname + ' Creating a new one...')
         create_start_docker(hostname)
     cmd = 'sudo docker exec -i -t {} su - {}'.format(
@@ -116,6 +124,7 @@ parser.add_argument('--level', '-l', default='error',
                     help="Pass debug,info,error to set the debug level")
 parser.add_argument('--version', '-v', action="store_true", default=False)
 parser.add_argument('--dryrun', '-n', action="store_true", default=False)
+parser.add_argument('--force', '-f', action="store_true", default=False, help="remove existing container if exists")
 parser.add_argument('--all', '-a', action="store_true", default=False,
                     help="Used to restart all containers in this host")
 parser.add_argument("containers", nargs="*",
@@ -133,23 +142,33 @@ logging.getLogger().setLevel({
 if args.version:
     import sd2
     print sd2.__version__
+    
+rr = os.system('sd2init')
+assert not rr
 
 containers = []
+hostname = subprocess.check_output('hostname').rstrip()
 if not args.containers and args.all:
-    hostname = subprocess.check_output('hostname').rstrip()
     containers = sd2.myhosts.get_container_names(hostname)
+    if args.force:
+        for cont in containers:
+            cmd = "sudo docker rm -f " + cont
+            if not args.dryrun:
+                logging.info("EXEC: " + cmd)
+                os.system(cmd)
+            else:
+                print(cmd)
     for cont in containers:
-        cmd = "sudo docker rm -f " + cont
-        if not args.dryrun:
-            logging.info("EXEC: " + cmd)
-            os.system(cmd)
-        else:
-            print(cmd)
-    #containers = ' '.join([x[len(hostname) + 1:] for x in conts])
-    for cont in containers:
-        create_start_docker(cont)
+        create_start_docker_if_needed(cont)
 if args.containers:
     for cont in args.containers:
+        if not sd2.myhosts.exists_container(cont):
+            cont2 = hostname + '-' + cont
+        if not sd2.myhosts.exists_container(cont2):
+            sys.stderr.write("Container {} is not known.\n".format(cont))
+            sys.exit(1)
+        else:
+            cont = cont2
         create_start_docker_if_needed(cont)
 logging.debug("Starting %s", containers)
 
