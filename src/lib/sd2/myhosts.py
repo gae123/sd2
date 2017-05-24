@@ -24,15 +24,10 @@ def init(a_config_dct = None):
 
     hosts = config_dct.get('hosts', [])
     hostsdict = {x['name']: x for x in hosts}
-
-    for host in hosts:
-        try:
-            base = host['base']
-        except KeyError:
-            sys.stderr.write(
-                "ERROR: base address for {} was not found.\n".format(
-                    host['name']))
-            sys.exit(1)
+    
+    for ii,host in enumerate(hosts):
+        base = host.get('base')
+        assert base
         host['local-ip'] = "172.172.{}.100".format(base)
         containers = []
         host_name = host['name']
@@ -54,6 +49,10 @@ def init(a_config_dct = None):
         host['containers'] = containers
     initialized = True
 
+def exists_container(containerName):
+    if not initialized:
+        init()
+    return containersdict.get(containerName)
 
 def get_container_extra_flags(containerName):
     if not initialized:
@@ -91,7 +90,27 @@ def get_container_names(hostname):
     host = hostsdict[hostname]
     return [x['name'] for x in host['containers']]
 
-def get_hosts():
+def is_disabled(hostname):
+    assert isinstance(hostname, basestring)
     if not initialized:
         init()
-    return hosts
+    host = hostsdict.get(hostname)
+    return not host or not not host.get('disabled')
+
+def is_enabled(hostname):
+    assert isinstance(hostname, basestring)
+    if not initialized:
+        init()
+    host = hostsdict.get(hostname)
+    return host and not host.get('disabled')
+
+def get_hosts(enabled=True):
+    if not initialized:
+        init()
+    return [x for x in hosts if not enabled or is_enabled(x['name'])]
+
+def get_hosts_dict(enabled=True):
+    if not initialized:
+        init()
+    return {x['name']: x for x in get_hosts(enabled)}
+    
