@@ -11,16 +11,24 @@ In some sense, we bring the advantages of a microservices environment to
 the development phase even when you do not use microservices in production.
 
 ## The Basic Concepts
-In sd2 you split your editing and source control activities from all 
+In sd2 you split your editing, browsing and source control activities from all 
 the other development activities. Editing is done on your developer 
 workstation that we will call editing host or EH. All the other development 
-activities will be done inside containers that can run anywhere you want. 
+activities will be done inside containers (DC) that can run anywhere you want. 
 The containers run on hosts that we call development hosts (DH).
 
 ![Use Case](https://docs.google.com/drawings/d/1uO3umvqVMIM2HnrXJwRAgAX2UWRYNVqEKDTNggXlEIc/pub?w=960&h=720)
 
 ## sd2 advantages
-1. By separating EH and DH you can now version independently your EH from your DH and the containers where your development environment runs. So now you can work on multiple projects (or releases of the same project) at the same time that have incompatible stacks.
+1. First of all, sd2 builds on top of all the lightweight virtualization advantages:
+    1. Start a development stack in mseconds, exactly the same stack you started last time.
+    1. Keep multiple development stacks isolated from each other. 
+    By separating EH and DH/DC you can now version independently your 
+    EH from your DH & DC where your development environment runs. 
+    So now you can work on multiple projects (or releases of the same project) 
+    at the same time that have incompatible stacks.
+    1. In a team environment, guarrantee that everybody has exactly the 
+    same development stack independent of the editing environment they use.
 1. sd2 uses a combination of tools to make sure that when you change a file on the EH, the file is copied to the destination(s) almost instanteneoulsy.
 1. All generated files/artifacts are generated in the DHs. Since you only commit on EHs, there is no chance for accidentally commit generated artifacts.
 1. Modern IDEs are heavyweight and have perofrmance requirements that increse with bigger projects. sd2 uses multiple replicas of the source code so both the IDE and the compilers/transpilers etc can work independently.
@@ -61,3 +69,16 @@ sd2 relies on a configuration file that defines your hosts, your conainers/image
  By replicating the repositories to the DH and mount them in the container you save the 
  time of continously replicating to new containers and save space when you want 
  multiple containers to access the same repository.
+ 
+ ## Future Directions
+ 
+ 1. Many times I have thought that this separation should take one more step
+ where the development environment can be different from the execution environment.
+ In this directions, you have EH, DH, DC and one more set of environments called ECs 
+ where the code runs. Currently the generated artifacts are deployed in 
+ the DC itself that plays a dual role.
+ 1. Many frameworks, e.g. kubernetes and swarm slightly overlap on the container
+ lifetime management. For now, I have decided to keep things simple and only rely
+ on ssh & friends but I can see how in the future this could be expanded to embrace
+ and leverage such frameworks.
+ 1. The implemenation is in python but relies a lot on unix tools. I am sure people would want a Windows port.
