@@ -7,7 +7,7 @@ stack. sd<sup>2</sup> relies heavily on a **single** text
 file that describes a developer's development environments and in containers 
 that isolate the different environments. sd<sup>2</sup> seperates the editing 
 environment from the environment where compilation and testing takes place. 
-In some sense, we bring the advantages of a microservices environment to 
+In some sense, sd2 brings the advantages of a microservices environment to 
 the development phase even when you do not use microservices in production.
 
 ## The Basic Concepts
