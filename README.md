@@ -10,7 +10,20 @@ environment from the environment where compilation and testing takes place.
 In some sense, we bring the advantages of a microservices environment to 
 the development phase even when you do not use microservices in production.
 
+## The Basic Concepts
+In sd2 you split your editing and source control activities from all 
+the other development activities. Editing is done on your developer 
+workstation that we will call editing host or EH. All the other development 
+activities will be done inside containers that can run anywhere you want. 
+The containers run on hosts that we call development hosts (DH).
+
 ![Use Case](https://docs.google.com/drawings/d/1uO3umvqVMIM2HnrXJwRAgAX2UWRYNVqEKDTNggXlEIc/pub?w=960&h=720)
+
+## sd2 advantages
+1. By separating EH and DH you can now version independently your EH from your DH and the containers where your development environment runs. So now you can work on multiple projects (or releases of the same project) at the same time that have incompatible stacks.
+1. sd2 uses a combination of tools to make sure that when you change a file on the EH, the file is copied to the destination(s) almost instanteneoulsy.
+1. All generated files/artifacts are generated in the DHs. Since you only commit on EHs, there is no chance for accidentally commit generated artifacts.
+1. Modern IDEs are heavyweight and have perofrmance requirements that increse with bigger projects. sd2 uses multiple replicas of the source code so both the IDE and the compilers/transpilers etc can work independently.
 
 ## Prerequisites
 The tools have been tested on MacOS and Ubuntu hosts. At a minimum you 
@@ -43,3 +56,8 @@ sd2 relies on a configuration file that defines your hosts, your conainers/image
  This will work but in most cases, it will have sever performance implications. You ca read more about the issue [here](https://forums.docker.com/t/file-access-in-mounted-volumes-extremely-slow-cpu-bound/8076/174).
  1. Is sd2 secure when the development host is across the internet?  
  sd2 always uses ssh to communicate from the editing machine to the development machine so it is as secure as ssh itself.
+ 1. Why would I evet want to copy the files to the DH instead of the container itself?  
+ The lifetime of a container is expected to be much shorter than the lifetime of a DH. 
+ By replicating the repositories to the DH and mount them in the container you save the 
+ time of continously replicating to new containers and save space when you want 
+ multiple containers to access the same repository.
