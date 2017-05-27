@@ -8,7 +8,6 @@ import subprocess
 import logging
 import sys
 
-
 def create_start_docker(hostname):
     from . import myhosts
     cmd = []
