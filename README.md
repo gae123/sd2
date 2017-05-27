@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/gae123/sd2.svg?branch=master)](https://travis-ci.org/gae123/sd2)
+
 # sd<sup>2</sup>: Software Defined Software Development™
 The Software Defined Software Development Process aka sd<sup>2</sup> is 
 a modern Software Development approach that aims to simplify the 
