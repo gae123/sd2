@@ -1,0 +1,136 @@
+{
+  "id": "https://gae123.com/sd2-schema",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties":  {
+    "images": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/image"
+      }
+    },
+    "hosts": {
+        "type": "array",
+        "items": {
+            "type": "object"
+        },
+        "minItems": 1
+    },
+    "workspaces": {
+        "type": "array",
+        "items": {
+          "$ref":  "#/definitions/workspace"
+        }
+    }
+  },
+  "required": ["workspaces", "hosts"],
+  "additionalProperties": false,
+  "definitions": {
+
+    "host": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {"type": "string"},
+        "abstract": {"type": "boolean"},
+        "extends": {"type": "string"},
+        "User": {"type": "string"},
+        "Port": {"type": "integer"},
+        "IdentityFile":  {"type": "string"},
+        "StrictHostKeyChecking": {"type": "string"},
+        "UserKnownHostsFile": {"type": "string"},
+        "ServerAliveInterval": {"type": "integer"},
+        "LocalForward": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "containers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "oneOf": [
+              {"type": "string"},
+              {"$ref":  "#/definitions/container"}
+            ]
+          }
+        }
+      }
+    },
+
+    "container": {
+      "type": "object",
+      "required": ["name", "imagename"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {"type": "string"},
+        "imagename": {"type": "string"}
+      }
+    },
+
+    "image": {
+      "type": "object",
+      "required": ["name", "docker_name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {"type": "string"},
+        "docker_name": {"type": "string"},
+        "docker_auth": {"type": "string"},
+        "ports": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "extra_flags": {"type": "string"},
+        "command": {"type": "string"}
+      }
+    },
+
+    "workspace": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {"type": "string"},
+        "abstract": {"type": "boolean"},
+        "extends": {"type": "string"},
+        "source_root": {"type": "string"},
+        "delete": {"type": "boolean"},
+        "paths": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/includeexclude"
+          }
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+
+    "includeexclude": {
+      "type": "object",
+      "properties": {
+        "include": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "exclude": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

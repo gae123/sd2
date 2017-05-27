@@ -10,6 +10,7 @@ import json
 import yaml
 import string
 import sys
+import jsonschema
 
 __all__=('config_dct')
 
@@ -123,6 +124,21 @@ def has_timestamp_changed(config_dct):
     return current_timestamp > config_dct['read_timestamp']
 
 
+def validate(config):
+    schema_path = os.path.join(os.path.dirname(__file__), 'config_schema.json')
+    with open(schema_path, 'r') as ff:
+        schemajson = ff.read()
+    schema = json.loads(schemajson)
+    validator = jsonschema.Draft4Validator(schema)
+    jsonschema.validate(config, schema)
+    if not validator.is_valid(config):
+        sys.stderr.write("Error: configuration file is not valid\n")
+        for error in validator.iter_errors(config):
+            sys.stderr.write(error.message + '\n')
+            sys.exit(1)
+    
+    
+
 def read_config():
     global g_root_dir, initial_timestamp
 
@@ -159,6 +175,7 @@ def read_config():
         sys.exit(1)
     process_inheritance(config_dct, ['hosts', 'workspaces'])
     process_expansions(config_dct)
+    validate(config_dct)
     ensure_base(config_dct['hosts'])
     #print json.dumps(config_dct, indent=2)
     config_dct['read_timestamp'] = get_max_timestamp()
