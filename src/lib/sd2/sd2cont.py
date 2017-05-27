@@ -3,21 +3,28 @@
 # Copyright (c) 2017 SiteWare Corp. All right reserved
 #############################################################################
 
-import argparse
 import os
 import subprocess
 import logging
 import sys
 
-import sd2
 
 def create_start_docker(hostname):
-    ns_host_ip = sd2.myhosts.get_container_ip(hostname)
-    ports = sd2.myhosts.get_container_ports(hostname)
+    from . import myhosts
+    cmd = []
+    ns_host_auth = myhosts.get_container_auth(hostname)
+    if ns_host_auth:
+        cmd.extend([
+            ns_host_auth,
+            ";"
+        ])
+    
+    ns_host_ip = myhosts.get_container_ip(hostname)
+    ports = myhosts.get_container_ports(hostname)
     ns_host_ports = ' '.join(['{}:{}'.format(ns_host_ip,x) for x in ports])
-    ns_extra_args = sd2.myhosts.get_container_extra_flags(hostname)
+    ns_extra_args = myhosts.get_container_extra_flags(hostname)
 
-    cmd = [
+    cmd.extend([
         'sudo',
         'docker',
         'run',
@@ -31,7 +38,7 @@ def create_start_docker(hostname):
         '--env', 'GROUP_ID={}'.format(
             subprocess.check_output(['id', '-g']).rstrip()),
         '--volume', '{}:/home/{}'.format(os.getenv('HOME'), os.getenv('USER'))
-    ]
+    ])
     if os.path.exists('/etc/localtime'):
         cmd.extend(['--volume', '/etc/localtime:/etc/localtime:ro'])
     if os.path.exists('/etc/timezone'):
@@ -49,8 +56,8 @@ def create_start_docker(hostname):
         ns_extra_args.split()
     for arg in ns_extra_args.split():
         cmd.append(arg)
-    cmd.append(sd2.myhosts.get_container_docker_image(hostname))
-    cmd.append(sd2.myhosts.get_container_command(hostname))
+    cmd.append(myhosts.get_container_docker_image(hostname))
+    cmd.append(myhosts.get_container_command(hostname))
 
     command = ' '.join(cmd)
     if (not args.dryrun):
@@ -71,7 +78,7 @@ def find_id_of_container(container_name):
         line.split(',')[1].startswith(container_name)]
     return None if not ids else ids[0]
 
-def remove_container_by_hostname(hostname):
+def remove_container_by_hostname(args, hostname):
     contid = find_id_of_container(hostname)
     cmd = "sudo docker rm -f " + contid
     if not args.dryrun:
@@ -80,7 +87,8 @@ def remove_container_by_hostname(hostname):
     else:
         print(cmd)
 
-def create_start_docker_if_needed(hostname):
+def create_start_docker_if_needed(args, hostname):
+    from . import myhosts
     running = None
     containers = subprocess.check_output(
         ["sudo", "docker", "ps", "-qa"])
@@ -97,16 +105,19 @@ def create_start_docker_if_needed(hostname):
 
     create_new_one = False
     if running == ['true']:
-        if image[0] == sd2.myhosts.get_container_docker_image(hostname):
+        if image[0] == myhosts.get_container_docker_image(hostname):
             print(hostname + ': Found running...')
         else:
-            print(hostname + ': Found running a different image {} and removing.'.format(image))
-            remove_container_by_hostname(hostname)
-            create_new_one = True
+            print(hostname + ': Found running a different image {}.'.format(image))
+            if args.upgrade or myhosts.get_container_upgrade_flag(hostname):
+                print(hostname + ': Removing container to start one with ther right image.'.format(
+                    myhosts.get_container_docker_image(hostname)))
+                remove_container_by_hostname(args, hostname)
+                create_new_one = True
     else:
         if running == ['false']:
             print(hostname + ': Found stopped and removing. ')
-            remove_container_by_hostname(hostname)
+            remove_container_by_hostname(args, hostname)
             create_new_one = True
         else:
             print(hostname + ': Not Found. ')
@@ -117,60 +128,56 @@ def create_start_docker_if_needed(hostname):
     cmd = 'sudo docker exec -i -t {} su - {}'.format(
         hostname, os.getenv('USER'))
     print "Attach by running: '{}'".format(cmd)
-
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--level', '-l', default='error',
-                    help="Pass debug,info,error to set the debug level")
-parser.add_argument('--version', '-v', action="store_true", default=False)
-parser.add_argument('--dryrun', '-n', action="store_true", default=False)
-parser.add_argument('--force', '-f', action="store_true", default=False, help="remove existing container if exists")
-parser.add_argument('--all', '-a', action="store_true", default=False,
-                    help="Used to restart all containers in this host")
-parser.add_argument("containers", nargs="*",
-                    help="containers to start, leave it empty and pass --all to restart all of them",
-                    default='')
-args = parser.parse_args(sys.argv[1:])
-
-logging.getLogger().setLevel({
-    'info': logging.INFO,
-    'debug': logging.DEBUG,
-    'error': logging.ERROR,
-    'warning': logging.WARNING
-}[args.level])
-
-if args.version:
-    import sd2
-    print sd2.__version__
     
-rr = os.system('sd2init')
-assert not rr
-
-containers = []
-hostname = subprocess.check_output('hostname').rstrip()
-if not args.containers and args.all:
-    containers = sd2.myhosts.get_container_names(hostname)
-    if args.force:
+    
+def main(args):
+    from . import gen_all, myhosts
+    gen_all.gen_all()
+    
+    containers = []
+    hostname = subprocess.check_output('hostname').rstrip()
+    if not args.containers and args.all:
+        containers = myhosts.get_container_names(hostname)
+        if args.force:
+            for cont in containers:
+                cmd = "sudo docker rm -f " + cont
+                if not args.dryrun:
+                    logging.info("EXEC: " + cmd)
+                    os.system(cmd)
+                else:
+                    print(cmd)
         for cont in containers:
-            cmd = "sudo docker rm -f " + cont
-            if not args.dryrun:
-                logging.info("EXEC: " + cmd)
-                os.system(cmd)
+            create_start_docker_if_needed(args, cont)
+    if args.containers:
+        for cont in args.containers:
+            if not myhosts.exists_container(cont):
+                cont2 = hostname + '-' + cont
+            if not myhosts.exists_container(cont2):
+                sys.stderr.write("Container {} is not known.\n".format(cont))
+                sys.exit(1)
             else:
-                print(cmd)
-    for cont in containers:
-        create_start_docker_if_needed(cont)
-if args.containers:
-    for cont in args.containers:
-        if not sd2.myhosts.exists_container(cont):
-            cont2 = hostname + '-' + cont
-        if not sd2.myhosts.exists_container(cont2):
-            sys.stderr.write("Container {} is not known.\n".format(cont))
-            sys.exit(1)
-        else:
-            cont = cont2
-        create_start_docker_if_needed(cont)
-logging.debug("Starting %s", containers)
+                cont = cont2
+            create_start_docker_if_needed(args, cont)
+    logging.debug("Starting %s", containers)
+    
+    
+def add_argument_parsing(subparsers):
+    parser_cont = subparsers.add_parser(
+        'cont',
+        description='Start containers in hosts'
+    )
+    parser_cont.add_argument('--force', '-f', action="store_true",
+                             default=False,
+                             help="first remove existing container if exists")
+    parser_cont.add_argument('--upgrade', '-u', action="store_true",
+                             default=False,
+                             help="first remove existing container if exists and is different version")
+    parser_cont.add_argument('--all', '-a', action="store_true", default=False,
+                             help="Used to restart all containers in this host")
+    parser_cont.add_argument("containers", nargs="*",
+                             help="containers to start, leave it empty and pass --all to restart all of them",
+                             default='')
+    parser_cont.set_defaults(func=main)
 
 
 

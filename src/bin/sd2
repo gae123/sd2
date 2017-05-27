@@ -1,0 +1,130 @@
+#!/usr/bin/env python
+#############################################################################
+# Copyright (c) 2017 SiteWare Corp. All right reserved
+#############################################################################
+
+import argparse
+import logging
+import sys
+import time
+import sd2
+
+ON_POSIX = 'posix' in sys.builtin_module_names
+
+g_workspaces = []
+g_args = None
+
+
+################################################################################
+
+class RestartEcxeption(Exception):
+    pass
+
+def init():
+    sd2.gen_all.gen_all()
+    logging.info("SD2INIT")
+    global g_workspaces
+    config_dct = sd2.read_config()
+    sd2.myhosts.init(config_dct)
+    g_workspaces = config_dct['workspaces']
+    # Normalize that host can be just a string
+    for ws in g_workspaces:
+        hosts = ws.get('targets', [])
+        for ii, host in enumerate(hosts):
+            if isinstance(host, basestring):
+                host = {'name': host}
+                hosts[ii] = host
+    return config_dct
+
+
+def main():
+    from sd2.ssh_connections import SSHConnections
+    from sd2.fswatch_connections import FSWatcher
+    from sd2.rsync_connections import RsyncConnections
+    from sd2.docker_connections import DockerConnections
+    ssh_connections = fswatchers = rsyncers = dockers =None
+    try:
+        config_dct = init()
+        ssh_connections = SSHConnections(g_args, g_workspaces)
+        fswatchers = FSWatcher(g_args, g_workspaces)
+        rsyncers = RsyncConnections(g_args, g_workspaces)
+        dockers = DockerConnections(g_args, g_workspaces)
+        while True:
+            if sd2.has_timestamp_changed(config_dct):
+                raise RestartEcxeption()
+            ssh_connections.poll()
+            fswatchers.poll()
+            rsyncers.poll()
+            dockers.poll()
+            time.sleep(.1)
+    finally:
+        if ssh_connections:
+            ssh_connections.shutdown()
+        if fswatchers:
+            fswatchers.shutdown()
+        if rsyncers:
+            rsyncers.shutdown()
+        if dockers:
+            dockers.shutdown()
+
+
+def daemon(g_args):
+    while True:
+        try:
+            main()
+        except RestartEcxeption:
+            continue
+            
+def add_argument_parsing(subparsers):
+    parser_run = subparsers.add_parser(
+        'run',
+        description="Run the daemon"
+    )
+    parser_run.add_argument('--nossh', '-s', action="store_true",
+                            default=False,
+                            help="use ssh in rsync")
+    parser_run.add_argument("hosts", nargs="*",
+                            help="host to sync, leave it empty to include all hosts",
+                            default='')
+    parser_run.set_defaults(func=daemon)
+    
+
+def parse_arguments():
+    global g_args
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--version', '-v', action="store_true", default=False)
+    parser.add_argument('--level', '-l', default='error',
+                        help="Pass debug,info or error to set the debug level")
+    parser.add_argument('--dryrun', '-n', action="store_true", default=False)
+    
+    subparsers = parser.add_subparsers()
+    
+    sd2.gen_all.add_argument_parsing(subparsers)
+    sd2.sd2cont.add_argument_parsing(subparsers)
+    add_argument_parsing(subparsers)
+    
+    g_args = parser.parse_args(sys.argv[1:])
+
+    level = {
+        'info': logging.INFO,
+        'debug': logging.DEBUG,
+        'error': logging.ERROR,
+        'warning': logging.WARNING
+    }[g_args.level]
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)-8s %(message)s',
+        level=level,
+        datefmt='%Y-%m-%d %H:%M:%S')
+
+    if g_args.version:
+        print sd2.__version__
+        sys.exit(0)
+        
+    g_args.func(g_args)
+
+
+parse_arguments()
+
+
+
+

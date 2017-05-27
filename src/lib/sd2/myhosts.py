@@ -27,22 +27,21 @@ def init(a_config_dct = None):
     
     for ii,host in enumerate(hosts):
         base = host.get('base')
-        assert base
+        assert base is not None
         host['local-ip'] = "172.172.{}.100".format(base)
         containers = []
         host_name = host['name']
         for cont, imagename in enumerate(host.get('containers', [])):
+            image_name = imagename if isinstance(imagename,
+                                                  basestring) else \
+                        imagename['imagename']
             cont = {
                 'ip': "172.172.{}.{}".format(base, 101 + cont),
-                'image': imagesdict[imagename] if isinstance(imagename,
-                                                             basestring) else
-                imagesdict[imagename['imagename']],
-                'image_name': imagename if isinstance(imagename,
-                                                      basestring) else
-                imagename['imagename'],
+                'image': imagesdict[image_name],
                 'name': "{}-{}".format(host_name, (
-                cont if isinstance(imagename, basestring) else imagename[
-                    'name'])),
+                    cont if isinstance(imagename, basestring) else imagename.get(
+                    'name', cont))),
+                'upgrade': False if isinstance(imagename, basestring) else imagename.get('upgrade')
             }
             containers.append(cont)
             containersdict[cont['name']] = cont
@@ -65,6 +64,19 @@ def get_container_command(containerName):
         init()
     cont = containersdict[containerName]
     return cont['image'].get('command', '')
+
+def get_container_auth(containerName):
+    if not initialized:
+        init()
+    cont = containersdict.get(containerName)
+    return cont['image'].get('docker_auth')
+
+
+def get_container_upgrade_flag(containerName):
+    if not initialized:
+        init()
+    cont = containersdict.get(containerName)
+    return cont.get('upgrade')
 
 def get_container_docker_image(containerName):
     if not initialized:
@@ -113,4 +125,5 @@ def get_hosts_dict(enabled=True):
     if not initialized:
         init()
     return {x['name']: x for x in get_hosts(enabled)}
+
     
