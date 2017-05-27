@@ -8,7 +8,7 @@ import subprocess
 import logging
 import sys
 
-def create_start_docker(hostname):
+def create_start_docker(args, hostname):
     from . import myhosts
     cmd = []
     ns_host_auth = myhosts.get_container_auth(hostname)
@@ -109,8 +109,8 @@ def create_start_docker_if_needed(args, hostname):
         else:
             print(hostname + ': Found running a different image {}.'.format(image))
             if args.upgrade or myhosts.get_container_upgrade_flag(hostname):
-                print(hostname + ': Removing container to start one with ther right image.'.format(
-                    myhosts.get_container_docker_image(hostname)))
+                print('{}: Removing container to start one with the right image {}'.format(
+                    hostname, myhosts.get_container_docker_image(hostname)))
                 remove_container_by_hostname(args, hostname)
                 create_new_one = True
     else:
@@ -123,7 +123,7 @@ def create_start_docker_if_needed(args, hostname):
             create_new_one = True
     if create_new_one:
         print(hostname + ' Creating a new one...')
-        create_start_docker(hostname)
+        create_start_docker(args, hostname)
     cmd = 'sudo docker exec -i -t {} su - {}'.format(
         hostname, os.getenv('USER'))
     print "Attach by running: '{}'".format(cmd)

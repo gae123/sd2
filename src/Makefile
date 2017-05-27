@@ -6,6 +6,7 @@
 SOURCES := $(shell find . -name '*.py')
 
 lint_and_test: export PYTHONPATH=$PYTHONPATH:lib
+
 all: lint build FORCE
 
 build:

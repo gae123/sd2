@@ -15,8 +15,11 @@ if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
     esac
 else
     # Install some custom requirements on Linux
-    :
+    sudo apt-get -y install build-essential python-dev
 fi
 
 pip install jinja2
 pip install pyinstaller
+pip install python_hosts
+pip install pyyaml
+pip install jsonschema
