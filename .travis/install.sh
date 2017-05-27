@@ -15,6 +15,7 @@ if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
     esac
 else
     # Install some custom requirements on Linux
+    :
 fi
 
 pip install jinja2
