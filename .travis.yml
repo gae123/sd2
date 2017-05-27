@@ -1,0 +1,14 @@
+language: python
+
+matrix:
+    include:
+        - os: linux
+          sudo: required
+          python: 2.7
+          env: TOXENV=2.7
+        - os: osx
+          language: generic
+          env: TOXENV=py27
+install:
+    - ./.travis/install.sh
+script: make all

@@ -8,9 +8,10 @@ lint_and_test: export PYTHONPATH=$PYTHONPATH:lib
 all: lint build FORCE
 
 build:
-	(mkdir -p out &&\
-	cd out && \
-	pyinstaller -F ../bin/sd2)
+	(rm -rf out && \
+	 mkdir -p out && \
+	 cd out && \
+	 pyinstaller -F ../bin/sd2)
 
 lint: FORCE
 	pylint -E $(SOURCES)
