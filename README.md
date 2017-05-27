@@ -48,7 +48,11 @@ need one machine (e.g. a MacOS notebook) with docker installed that will
    1. ssh server
 1. Other
    1. Before you start you need to make sure that you can use ssh with certificates to login from the editing machine to the development host(s). Do not add the hosts to .ssh/config or /etc/hosts.
-   
+   1. You also need to create your images. Here are some suggestions for images compatible with sd2
+       1. The container will run as a daemon so put a `sleep infinity` at the end so it does not exit
+       1. You will want to access inside the container so install ssh server and maybe vnc and/or screeen.
+       1. Your container will run using the same username/id you have on the host. It is a good idea to use a script that relocates exising users in the container os that have the same userid with the one you have on the host (see [this tool](https://github.com/schmidigital/permission-fix/blob/master/tools/permission_fix).
+       
 ## How to set it up
 sd2 relies on a configuration file that defines your hosts, your conainers/images and your repositories. The configuration file should be in your home directory under .sd2 (ie ~/.sd2/config.yaml). A daemon called sd2d reads the configuration file and takes all the actions needed to maintain the connections and replicate the repositories in real time as they change in the development machine.
 
