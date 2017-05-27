@@ -23,3 +23,4 @@ pip install pyinstaller
 pip install python_hosts
 pip install pyyaml
 pip install jsonschema
+pip install pylint
