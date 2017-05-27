@@ -11,4 +11,4 @@ matrix:
           env: TOXENV=py27
 install:
     - ./.travis/install.sh
-script: make all
+script: cd src && make all

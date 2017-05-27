@@ -5,13 +5,13 @@
 
 SOURCES := $(shell find . -name '*.py')
 
-lint_and_test: export PYTHONPATH=$PYTHONPATH:lib
+lint: export PYTHONPATH=$PYTHONPATH:lib
+build: export PYTHONPATH=$PYTHONPATH:lib
 
 all: lint build FORCE
 
-build:
-	(rm -rf out && \
-	 mkdir -p out && \
+build: clean
+	(mkdir -p out && \
 	 cd out && \
 	 pyinstaller -F ../bin/sd2)
 
@@ -19,6 +19,6 @@ lint: FORCE
 	pylint -E $(SOURCES)
 
 clean:
-	rm -rf ./dist
+	rm -rf out
 
 FORCE:
