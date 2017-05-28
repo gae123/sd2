@@ -20,7 +20,7 @@ build: clean
 	 pyinstaller -F $(TOP)/bin/sd2 && \
 	 cp dist/sd2 dist/sd2-$(SD2OS))
 	 pwd
-	 find . -name
+	 find . -print
 
 lint: FORCE
 	pylint -E $(SOURCES)
