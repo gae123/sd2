@@ -22,6 +22,6 @@ deploy:
   file:
     - /Users/travis/build/gae123/sd2/src/out/$SD2OS/dist/sd2
   skip_cleanup: true
-#  on:
-#    tags: false
+  on:
+    tags: true
 #    condition: $TRAVIS_OS_NAME = 'linux'
