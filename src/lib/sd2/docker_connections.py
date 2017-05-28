@@ -26,6 +26,9 @@ class DockerConnections(Connections):
         g_workspaces = workspaces
         self.host_to_contact = {}
         for host in myhosts.get_hosts():
+            if not myhosts.get_container_names(host['name']):
+                logging.debug('DOCK:SKIP %s', host['name'])
+                continue
             if not g_args.hosts or host['name'] in g_args.hosts:
                 self.host_to_contact[host['name']] = {
                     'name': host['name'],
@@ -35,10 +38,12 @@ class DockerConnections(Connections):
                 }
         
     def get_cmd(self, host):
-        return ["ssh",
-                host['name'],
-                "sd2 cont",
-                '-a'
+        return [
+                "sd2",
+                "cont",
+                '--noinit',
+                '--all',
+                host['name']
                 ]
 
     def handle_host(self, host):
@@ -65,7 +70,7 @@ class DockerConnections(Connections):
                 host['proc'] = None
                 host['last_connection'] = datetime.datetime.now()
 
-        # Every 15 minutes rsync
+        # Every 15 minutes repeat
         if (host.get('last_connection') and
                     (datetime.datetime.now() - host[
                         'last_connection']).seconds > 15 * 60):
@@ -75,9 +80,9 @@ class DockerConnections(Connections):
         cmd = host['cmd']
         logging.info("DOCKER {} {}".format(host['name'], " ".join(cmd)))
         host['proc'] = subprocess.Popen(cmd,
-                                             stdout=subprocess.PIPE,
-                                             stderr=subprocess.STDOUT,
-                                             close_fds=ON_POSIX)
+                                         stdout=subprocess.PIPE,
+                                         stderr=subprocess.STDOUT,
+                                         close_fds=ON_POSIX)
         fl = fcntl.fcntl(host['proc'].stdout, fcntl.F_GETFL)
         fcntl.fcntl(host['proc'].stdout, fcntl.F_SETFL,
                     fl | os.O_NONBLOCK)

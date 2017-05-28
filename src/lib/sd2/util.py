@@ -4,6 +4,7 @@
 #############################################################################
 import os
 import logging
+import subprocess
 
 # def resync_reg_exp_match(root, apath, ipath):
 #     if not apath.startswith(root):
@@ -52,3 +53,35 @@ def kill_subprocess_process(proc, label=''):
     except:
         logging.warning("KIILL:FAIL %s", label)
         pass
+    
+# Closure to cache local host name and avoid local
+def _our_host_name():
+    class O(object):
+        our_host_name = None
+        
+    o = O()
+    def our_host_name_inner(o):
+        def fn():
+            if o.our_host_name is None:
+                o.our_host_name = subprocess.check_output('hostname').rstrip().split('.')[0]
+            return o.our_host_name
+        return fn
+    return our_host_name_inner(o)
+get_our_hostname = _our_host_name()
+
+
+def remote_system(remote_host, cmd):
+    if get_our_hostname() != remote_host:
+        if isinstance(cmd, (list,tuple)):
+            cmd = " ".join(cmd)
+        cmd = "ssh {} {}".format(remote_host, cmd)
+    return os.system(cmd)
+
+
+def remote_subprocess_check_output(remote_host, cmd):
+    if get_our_hostname() != remote_host:
+        if isinstance(cmd, (list,tuple)):
+            cmd = " ".join(cmd)
+        cmd = "ssh {} {}".format(remote_host, cmd)
+    output = subprocess.check_output(cmd, shell=True)
+    return output
