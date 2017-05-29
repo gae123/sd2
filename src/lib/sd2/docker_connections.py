@@ -38,13 +38,18 @@ class DockerConnections(Connections):
                 }
         
     def get_cmd(self, host):
-        return [
-                "sd2",
+        rr = ["sd2"]
+        rr.extend([
+            "--level",
+            g_args.level,
+        ])
+        rr.extend([
                 "cont",
                 '--noinit',
                 '--all',
                 host['name']
-                ]
+                ])
+        return rr
 
     def handle_host(self, host):
         proc = host.get('proc')
@@ -73,8 +78,8 @@ class DockerConnections(Connections):
         # Every 15 minutes repeat
         if (host.get('last_connection') and
                     (datetime.datetime.now() - host[
-                        'last_connection']).seconds > 15 * 60):
-            host['need_docker_connection'] = 1
+                        'last_connection']).seconds > 15*60):
+            host['need_connection'] = 1
         if host.get('need_connection') == 0:
             return
         cmd = host['cmd']
