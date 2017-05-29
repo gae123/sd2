@@ -144,6 +144,9 @@ very cool initializations without any programming.
 1. Bring your own container images. We do not provide tools to generate
  docker images, we expect that are already available and published in 
  a local or remote repository.
+1. Although this might change in the future, you are currently responsible to
+   set up your DH (it really only needs a account with your user name,
+   ssh access and docker installed).
  
  
 ## Troubleshooting
