@@ -39,6 +39,10 @@ commit on EHs, there is no chance for accidentally commit generated artifacts.
 with bigger projects. sd2 uses multiple replicas of the source code so both the 
 IDE and the compilers/transpilers etc can work independently.
 
+## Supported Platforms
+* **Editing Host (EH)**: MacOS  (Linux should be easy but has not been tested)
+* **Development Host (DH)**: MacOs or Linux 
+
 ## Prerequisites
 The tools have been tested on MacOS and Ubuntu hosts. At a minimum you 
 need one machine (e.g. a MacOS notebook) with docker installed that will
@@ -88,8 +92,39 @@ from the [releases](/releases) section. Put it
 somewhere so that it is in your PATH, open a window and run sd2.
 
 ## Configuration File Syntax
-Coming soon... I know you cannot do much before this is shared along with some
-examples but please wait. I am cleaning it up.
+When sd2 starts it reads its configuration from `~/.sd2/config.yaml` 
+(or in `$SD2_CONFIG_DIR/config.yaml` if this variable is set). This file
+has three main sections. One that describes the DHs, one that describes the 
+containers images, and one that describes the workspaces that you want to be
+synced into the DHs. There is a json schema for the file that you can find
+[here](https://raw.githubusercontent.com/gae123/sd2/master/src/lib/sd2/config_schema.json).
+
+A very simple configuration file is shown 
+[here](https://raw.githubusercontent.com/gae123/sd2/master/examples/config-1/config.yaml)
+It will start two containers on a host called paros that run the ubuntu:16.04 image.
+The first one will be called paros-0 and the second will be called paros-1.
+
+
+> More coming soon... I know you cannot do much before I share some examples
+
+## Advanced Configuration Topics
+String values are treates as python string templates with the already parsed
+config file as the context. So for instance if you put `$name` somewhere it will
+be substituted by the earlier value of name. (Use `$$` to escape `$`). 
+
+If the config.yaml file starts with the line `#!jinja2`
+sd2 treats the configuration file as a [jinja2 template](http://jinja.pocoo.org/docs/2.9/). 
+The tool first processes the file
+and then parses it as yaml. A dictionary with the environment variables
+is passed as the context for the jinja2 template rendering. So for instane if
+you have `{{USER}}` in the file it will be substituted with the USER environment
+variabl.
+
+Otherwise, if there is an executable called ~/.sd2/config,
+the executable is first executed, and its output is treated as json. Then this json
+is parsed and provided as context to the the jinja2 parser. This allows to do 
+very cool initializations without any programming.
+
 
 ## What is not covered by sd<sup>2</sup>
 1. Bring your own editor/IDE. We are agnostic how you edit your source code.
@@ -99,7 +134,9 @@ examples but please wait. I am cleaning it up.
  
  
 ## Troubleshooting
-1. Start the commaind as following `sd2 -l debug` to see what it is doing
+1. Start the commaind as following `sd2 -l debug run` to see what it is doing
+1. Try to ssh to the DHs. You should be able to ssh to any of them from a 
+terminal in your EH.
  
 ## FAQ
 1. When I run docker directly on the MacOS why can't I just mount the MacOS 
@@ -109,11 +146,17 @@ You can read more about the issue [here](https://forums.docker.com/t/file-access
 1. Is sd2 secure when the development host is across the internet?  
 sd2 always uses ssh to communicate from the editing machine to the 
 development machine so it is as secure as ssh itself.
-1. Why would I evet want to copy the files to the DH instead of the container itself?  
+1. Why would I ever want to copy the files to the DH instead of the container itself?  
 The lifetime of a container is expected to be much shorter than the lifetime of a DH. 
 By replicating the repositories to the DH and mount them in the container you save the 
 time of continously replicating to new containers and save space when you want 
 multiple containers to access the same repository.
+1. What are the system files that sd2 alters:
+    1. `/etc/hosts`
+    1. `~/.ssh/config`  
+    
+    All the changes are done in a very safe way that does not alter what is 
+    already in the files.
  
 ## Future Directions
 
