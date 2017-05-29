@@ -14,7 +14,7 @@ import jsonschema
 
 __all__=('config_dct')
 
-g_root_dir = os.path.join(os.getenv('HOME'), '.sd2')
+g_root_dir = os.getenv('SD2_CONFIG_DIR', os.path.join(os.getenv('HOME'), '.sd2'))
 
 def ensure_base(hosts):
     hosts_by_base = {}
@@ -91,8 +91,8 @@ def process_inheritance(config_dct, keys):
         return rr
 
     for tlkey in keys:
-        hostsdict = {x['name']: x for x in config_dct[tlkey]}
-        dfsnodes = _dfs(config_dct[tlkey])
+        hostsdict = {x['name']: x for x in config_dct.get(tlkey, [])}
+        dfsnodes = _dfs(config_dct.get(tlkey, []))
         #print [x['name'] for x in dfsnodes]
         rr = []
         for dct in dfsnodes:
@@ -147,12 +147,12 @@ def read_config():
             g_root_dir))
         sys.exit(1)
 
-    configpy_path = os.path.join(g_root_dir, 'config.py')
+    configpy_path = os.path.join(g_root_dir, 'config')
     if os.path.exists(configpy_path):
         json_text = subprocess.check_output(configpy_path)
         ctx = json.loads(json_text)
     else:
-        ctx = {}
+        ctx = os.environ
 
     if os.path.exists(os.path.join(g_root_dir, 'config.yaml')):
         with open(os.path.join(g_root_dir, 'config.yaml'), 'r') as fd:
