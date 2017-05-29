@@ -2,15 +2,20 @@
 
 # sd<sup>2</sup>: Software Defined Software Development™
 The Software Defined Software Development Process aka sd<sup>2</sup> is 
-a modern Software Development approach that aims to simplify the 
-complexity that usually accompanies working with multiple projects 
-each with multiple branches and potentially each with its own
-stack. sd<sup>2</sup> relies heavily on a **single** text 
+a modern Software Development approach to help developers 
+concurrenlty work with multiple projects 
+each with multiple branches, potentially each with its own
+stack. 
+
+sd<sup>2</sup> relies heavily on a **single** text 
 file that describes a developer's development environments and in containers 
 that isolate the different environments. sd<sup>2</sup> seperates the editing 
 environment from the environment where compilation and testing takes place. 
 In some sense, sd2 brings the advantages of a microservices environment to 
 the development phase even when you do not use microservices in production.
+
+This project provides a tool called sd2 that assists developers embracing the
+sd<sup>2</sup> process.
 
 ## The Basic Concepts
 In sd2 you split your editing, browsing and source control activities from all 
@@ -89,16 +94,22 @@ it is doing to match the new configuration.
 
 You can download the appropriate sd2 binary for your platform 
 from the [releases](/releases) section. Put it
-somewhere so that it is in your PATH, open a window and run sd2.
+somewhere so that it is in your PATH, create your configuration file that 
+describes your environment, open a terminal and run sd2.
 
-## Configuration File Syntax
-When sd2 starts it reads its configuration from `~/.sd2/config.yaml` 
-(or in `$SD2_CONFIG_DIR/config.yaml` if this variable is set). This file
+## Configuration 
+
+**Location**: When sd2 starts it reads its configuration from `~/.sd2/config.yaml` 
+(or in `$SD2_CONFIG_DIR/config.yaml` if this variable is set). 
+
+
+**Syntax**: This file
 has three main sections. One that describes the DHs, one that describes the 
 containers images, and one that describes the workspaces that you want to be
 synced into the DHs. There is a json schema for the file that you can find
 [here](https://raw.githubusercontent.com/gae123/sd2/master/src/lib/sd2/config_schema.json).
 
+**Examples**
 A very simple configuration file is shown 
 [here](https://raw.githubusercontent.com/gae123/sd2/master/examples/config-1/config.yaml)
 It will start two containers on a host called paros that run the ubuntu:16.04 image.
@@ -108,10 +119,12 @@ The first one will be called paros-0 and the second will be called paros-1.
 > More coming soon... I know you cannot do much before I share some examples
 
 ## Advanced Configuration Topics
-String values are treates as python string templates with the already parsed
+**Expansion**:
+String values are treated as python string templates with the already parsed
 config file as the context. So for instance if you put `$name` somewhere it will
 be substituted by the earlier value of name. (Use `$$` to escape `$`). 
 
+**Jinja Template Support**
 If the config.yaml file starts with the line `#!jinja2`
 sd2 treats the configuration file as a [jinja2 template](http://jinja.pocoo.org/docs/2.9/). 
 The tool first processes the file
