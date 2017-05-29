@@ -1,9 +1,11 @@
 {
   "id": "https://gae123.com/sd2-schema",
   "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "root",
   "type": "object",
   "properties":  {
     "images": {
+      "title": "Your docker images",
       "type": "array",
       "items": {
         "$ref": "#/definitions/image"
