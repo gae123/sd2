@@ -69,19 +69,33 @@ def _our_host_name():
     return our_host_name_inner(o)
 get_our_hostname = _our_host_name()
 
+def is_localhost(hostname):
+    if hostname == "localhost":
+        return True
+    if hostname == get_our_hostname():
+        return True
+    return False
 
 def remote_system(remote_host, cmd):
-    if get_our_hostname() != remote_host:
-        if isinstance(cmd, (list,tuple)):
-            cmd = " ".join(cmd)
-        cmd = "ssh {} {}".format(remote_host, cmd)
+    if isinstance(cmd, (list, tuple)):
+        cmd = " ".join(cmd)
+    if is_localhost(remote_host):
+        cmd = "ssh {} '{}'".format(remote_host, cmd)
     return os.system(cmd)
 
 
 def remote_subprocess_check_output(remote_host, cmd):
-    if get_our_hostname() != remote_host:
-        if isinstance(cmd, (list,tuple)):
-            cmd = " ".join(cmd)
-        cmd = "ssh {} {}".format(remote_host, cmd)
+    if isinstance(cmd, (list, tuple)):
+        cmd = " ".join(cmd)
+    if is_localhost(remote_host):
+        cmd = "ssh {} '{}'".format(remote_host, cmd)
     output = subprocess.check_output(cmd, shell=True)
     return output
+
+def remote_path_exists(remote_host, path):
+    if is_localhost(remote_host):
+        return os.path.exists(path)
+    else:
+        cmd = "ssh {} '[ -e {} ] && echo yes'"
+        output = subprocess.check_output(cmd, shell=True)
+        return output == 'yes'
