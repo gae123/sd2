@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
+#############################################################################
+# Copyright (c) 2017 SiteWare Corp. All right reserved
+#############################################################################
 
 UNUSED_USER_ID=21338
 UNUSED_GROUP_ID=21337
+
+# The set_group_permissions and set_user_permissions functions come from here
+# https://github.com/schmidigital/permission-fix/blob/master/LICENSE
+# MIT License
 
 function set_group_permissions() {
     readonly DOCKER_GROUP=$1
@@ -58,9 +65,6 @@ function set_user_permissions() {
       echo "Finished"
     fi
 }
-
-echo $USER
-echo $USER_ID
 
 readonly DOCKER_USER_ID=$(id -u $USER)
 if [ x"$DOCKER_USER_ID" = x"" ]; then
