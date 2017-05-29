@@ -1,0 +1,12 @@
+
+images:
+  - name: ubuntu1604
+    docker_name: ubuntu:16.04
+    extra_flags: --entrypoint /home/$$USER/projects/0.sd2/examples/entrypoint.sh
+
+hosts:
+  - name: paros
+    base: 0
+    containers:
+     - ubuntu1604
+     - ubuntu1604
