@@ -80,6 +80,9 @@ ssh_option_names = [
 def get_our_ssh_config():
     rr = ''
     for host in sd2.get_hosts():
+        from . import util
+        if util.is_localhost(host['name']):
+            continue
         try:
             rr += '''\n########## GENERATED DO NOT MODIFY #####################\n'''
             if host.get('match'):
@@ -115,7 +118,7 @@ def get_our_ssh_config():
                     rr += '    {key} {value}\n'.format(key=key, value=vv)
                     # rr += '    LocalForward {}-local:2375 localhost:2375\n'.format(host['name'])
             for cont in host.get('containers', []):
-                ports = cont['image']['ports']
+                ports = cont['image'].get('ports', [])
                 for port in ports:
                     (p1, p2) = port.split(':')
                     rr += (
@@ -123,7 +126,7 @@ def get_our_ssh_config():
                                                                  p1))
             rr += '\n'
             
-            for cont in host.get('containers'):
+            for cont in host.get('containers', []):
                 rr += container_entry_template.format(**locals())
         except Exception as ex:
             sys.stderr.write("ERROR: Processing host {}\n".format(host['name']))
