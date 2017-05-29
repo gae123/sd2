@@ -10,6 +10,7 @@ import sys
 
 from .util import kill_subprocess_process
 from . import myhosts
+from . import util
 from .connections import Connections
 
 ON_POSIX = 'posix' in sys.builtin_module_names
@@ -25,6 +26,8 @@ class SSHConnections(Connections):
         g_workspaces = workspaces
         self.hosts_to_ssh = {}
         for host in myhosts.hosts:
+            if util.is_localhost(host['name']):
+                continue
             if myhosts.is_disabled(host['name']):
                 continue
             if not g_args.hosts or host['name'] in g_args.hosts:
