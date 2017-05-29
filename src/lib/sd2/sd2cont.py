@@ -31,25 +31,25 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
         '--privileged',
         "--name={}".format(container_host_name),
         "--hostname={}".format(container_host_name),
-        "--env", "USER='$USER'",
-        "--env", "USER_ID='{}'".format(
+        "--env", "USER=$USER",
+        "--env", "USER_ID={}".format(
             util.remote_subprocess_check_output(host_name, ['id', '-u']).rstrip()),
-        "--env", "GROUP_ID='{}'".format(
+        "--env", "GROUP_ID={}".format(
             util.remote_subprocess_check_output(host_name, ['id', '-g']).rstrip()),
-        "--volume", "'$HOME':/home/'$USER'"
+        "--volume", "$HOME:/home/$USER"
     ])
-    if os.path.exists('/etc/localtime'):
+    if util.remote_path_exists(host_name, '/etc/localtime'):
         cmd.extend(['--volume', '/etc/localtime:/etc/localtime:ro'])
-    if os.path.exists('/etc/timezone'):
+    if util.remote_path_exists(host_name, '/etc/timezone'):
         cmd.extend(['--volume', '/etc/timezone:/etc/timezone:ro'])
-    if os.path.exists('/mnt'):
+    if util.remote_path_exists(host_name, '/mnt'):
         cmd.extend(['--volume', '/mnt:/mnt'])
 
     for ports in ns_host_ports.split():
         cmd.append('--publish')
         cmd.append(ports)
 
-    cmd.extend(['--workdir', "/home/'$USER'"])
+    cmd.extend(['--workdir', "/home/$USER"])
     cmd.append('--tty')
     if isinstance(ns_extra_args, basestring):
         ns_extra_args.split()
