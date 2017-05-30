@@ -112,8 +112,15 @@ synced into the DHs. There is a json schema for the file that you can find
 **Examples**
 A very simple configuration file is shown 
 [here](https://raw.githubusercontent.com/gae123/sd2/master/examples/config-1/config.yaml)
-It will start two containers on a host called paros that run the ubuntu:16.04 image.
-The first one will be called paros-0 and the second will be called paros-1.
+It will start two containers on a host called paros that run an image 
+that has ubuntu 16.04, ssh and nginx.
+The first one will be called paros-0 and the second will be called paros-1. From the
+EH, you
+should be able to ssh to paros-0 and paros-1. You will find yourself in your
+own home directory in paros, using your username. On your EH 
+you should be able to open 
+a browser and point it to http://paros-0 or http://paros-1 and see the nginx
+page.
 
 
 > More coming soon... I know you cannot do much before I share some examples
@@ -138,6 +145,10 @@ the executable is first executed, and its output is treated as json. Then this j
 is parsed and provided as context to the the jinja2 parser. This allows to do 
 very cool initializations without any programming.
 
+**Inheritance**
+In the workspaces and hosts section you can create abstract sections that do 
+not describe a workspace or host but provide some key/values pairs that will 
+be inherited later.
 
 ## What is not covered by sd<sup>2</sup>
 1. Bring your own editor/IDE. We are agnostic how you edit your source code.

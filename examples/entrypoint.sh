@@ -73,5 +73,8 @@ if [ x"$DOCKER_USER_ID" = x"" ]; then
     set_group_permissions $USER $GROUP_ID
     addgroup --gid $GROUP_ID $USER
     adduser --disabled-password --no-create-home --gecos '' --uid $USER_ID --ingroup $USER $USER
+    echo "$USER ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USER
 fi
+service ssh start
+service nginx start
 sleep infinity
