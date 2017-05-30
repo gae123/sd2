@@ -56,10 +56,16 @@ class SSHConnections(Connections):
             # logging.info("%s %s",host, host['sshproc'].returncode if host['sshproc'] else '???')
             if host['sshproc'] is None or host['sshproc'].returncode != None:
                 if host['sshproc'] and host['sshproc'].returncode != None:
-                    logging.info("SSH:RC %s=%s",
+                    log = logging.info if host['sshproc'].returncode == 0 else logging.error
+                    log("SSH:RC %s=%s",
                                  host['sshcmd'],
                                  host['sshproc'].returncode)
                     host['sshproc'] = None
+                # Only try to start once every 30 seconds
+                if (host.get('ssh_last_connection') and
+                            (datetime.datetime.now() - host[
+                                'ssh_last_connection']).seconds < 30):
+                    continue
                 logging.info("SSH:START %s", host['sshcmd'])
                 try:
                     host['sshproc'] = subprocess.Popen(

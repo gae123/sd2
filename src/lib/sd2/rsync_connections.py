@@ -77,7 +77,8 @@ class RsyncConnections(Connections):
                 # logging.debug("SKIP:SYNC %s:%s", wsi['name'], host['name'])
                 return
             else:
-                logging.info("RSYNC:RC %s:%s=%s", wsi['name'],
+                log = logging.info if proc.returncode == 0 else logging.error
+                log("RSYNC:RC %s:%s=%s", wsi['name'],
                              host['name'],
                              proc.returncode)
                 host['rsyncproc'] = None
