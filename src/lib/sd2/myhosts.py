@@ -2,7 +2,7 @@
 #############################################################################
 # Copyright (c) 2017 SiteWare Corp. All right reserved
 #############################################################################
-import sys
+
  
 initialized = False
 config_dct = {}
@@ -11,7 +11,7 @@ containersdict = {}
 hostsdict = {}
 hosts = None
 
-def init(a_config_dct = None):
+def init(a_config_dct=None):
     global config_dct, containersdict,hostsdict, imagesdict, initialized, hosts
     from . import config
     if a_config_dct is None:
@@ -24,6 +24,7 @@ def init(a_config_dct = None):
 
     hosts = config_dct.get('hosts', [])
     hostsdict = {x['name']: x for x in hosts}
+    
     
     for ii,host in enumerate(hosts):
         base = host.get('base')

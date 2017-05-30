@@ -41,7 +41,7 @@ class DockerConnections(Connections):
         rr = ["sd2"]
         rr.extend([
             "--level",
-            g_args.level,
+            g_args.level
         ])
         rr.extend([
                 "cont",
