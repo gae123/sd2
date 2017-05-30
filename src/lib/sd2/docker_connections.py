@@ -79,7 +79,7 @@ class DockerConnections(Connections):
         # Every 15 minutes repeat
         if (host.get('last_connection') and
                     (datetime.datetime.now() - host[
-                        'last_connection']).seconds > 15*60):
+                        'last_connection']).seconds > 5*60):
             host['need_connection'] = 1
         if host.get('need_connection') == 0:
             return
