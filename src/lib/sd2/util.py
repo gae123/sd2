@@ -79,16 +79,18 @@ def is_localhost(hostname):
 def remote_system(remote_host, cmd):
     if isinstance(cmd, (list, tuple)):
         cmd = " ".join(cmd)
-    if not is_localhost(remote_host):
+    if remote_host and not is_localhost(remote_host):
         cmd = "ssh {} '{}'".format(remote_host, cmd)
+    logging.debug("RSCO: " + cmd)
     return os.system(cmd)
 
 
 def remote_subprocess_check_output(remote_host, cmd):
     if isinstance(cmd, (list, tuple)):
         cmd = " ".join(cmd)
-    if not is_localhost(remote_host):
+    if remote_host and not is_localhost(remote_host):
         cmd = "ssh {} '{}'".format(remote_host, cmd)
+    logging.debug("RSCO: " + cmd)
     output = subprocess.check_output(cmd, shell=True)
     return output
 
