@@ -1,12 +1,18 @@
+#!jinja2
 
 images:
   - name: ubuntu1604
-    docker_name: ubuntu:16.04
+    docker_name: pako/ubuntu1604-ssh-nginx:1.0
     extra_flags: --entrypoint /home/$$USER/projects/0.sd2/examples/entrypoint.sh
+    ports:
+      - 80:80
+
 
 hosts:
   - name: paros
-    base: 0
+    base: 0     # The internal ip of these containers will be 172.172.0.100, 172.172.0.101 etc
+    IdentityFile: ~{{USER}}/.ssh/id_rsa-2015
+
     containers:
      - ubuntu1604
      - ubuntu1604
