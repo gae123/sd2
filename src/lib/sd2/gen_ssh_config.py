@@ -17,7 +17,7 @@ container_entry_template = '''
 host {cont[name]}
     HostName {cont[name]}
     User {host[User]}
-    Port 2222
+    Port {sshport}
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
     IdentityFile {host[IdentityFile]}

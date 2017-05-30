@@ -3,6 +3,7 @@
 # Copyright (c) 2017 SiteWare Corp. All right reserved
 #############################################################################
 
+import copy
 import os
 import logging
 
@@ -19,7 +20,9 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
         ])
     
     ns_host_ip = myhosts.get_container_ip(container_host_name)
-    ports = myhosts.get_container_ports(container_host_name)
+    sshport = 22 if util.is_localhost(host_name) else 2222
+    ports = copy.copy(myhosts.get_container_ports(container_host_name))
+    ports.append("{}:22".format(sshport))
     ns_host_ports = ' '.join(['{}:{}'.format(ns_host_ip,x) for x in ports])
     ns_extra_args = myhosts.get_container_extra_flags(container_host_name)
 
