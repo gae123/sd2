@@ -51,7 +51,7 @@ def kill_subprocess_process(proc, label=''):
         #proc.kill()
         os.system("sudo kill {}".format(proc.pid))
     except:
-        logging.warning("KIILL:FAIL %s", label)
+        logging.warning("KILL:FAIL %s", label)
         pass
     
 # Closure to cache local host name and avoid local
