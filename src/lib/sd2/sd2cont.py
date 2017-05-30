@@ -157,7 +157,8 @@ def main(args):
         containers = args.containers
         
     # if the user just passed 0 convert it too hostname-0
-    containers = [(x if x.startswith(args.hostname) else (args.hostname + '-' + x)) for x in containers]
+    containers = [(x if x.startswith(args.hostname)
+                    else (args.hostname + '-' + x)) for x in containers]
     do_containers(args.hostname, containers, args.force, args.dryrun, args.upgrade)
     
     logging.debug("sd2cont: Starting %s on %s", containers, args.hostname)
@@ -174,17 +175,19 @@ def add_argument_parsing(subparsers):
     parser_cont.add_argument('--force', '-f', action="store_true",
                              default=False,
                              help="first remove existing container if exists")
-    parser_cont.add_argument('--upgrade', '-u', action="store_true",
-                             default=False,
-                             help="first remove existing container if exists and is different version")
+    parser_cont.add_argument(
+        '--upgrade', '-u', action="store_true",
+        default=False,
+        help="first remove existing container if exists and is different version")
     parser_cont.add_argument('--all', '-a', action="store_true", default=False,
                              help="Used to restart all containers in this host")
     parser_cont.add_argument("hostname", nargs="?",
                              help="hostname where to start the images",
                              default='')
-    parser_cont.add_argument("containers", nargs="*",
-                             help="containers to start, leave it empty and pass --all to restart all of them",
-                             default='')
+    parser_cont.add_argument(
+        "containers", nargs="*",
+        help="containers to start, leave it empty and pass --all to restart all of them",
+        default='')
     parser_cont.set_defaults(func=main)
 
 

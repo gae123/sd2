@@ -76,58 +76,67 @@ ssh_option_names = [
     'UserKnownHostsFile'
 ]
 
+def generate_for_host(host):
+    from . import util
+    rr = ''
+    rr += '''\n########## GENERATED DO NOT MODIFY #####################\n'''
+    sshport = 22 if util.is_localhost(host['name']) else 2222
+    if not util.is_localhost(host['name']):
+        if host.get('match'):
+            matches = host.get('match')
+            for hostname in [host['name'], host['name'] + '-ports']:
+                for match in matches:
+                    rr += 'Match originalhost {hostname} exec "{match[condition]}"\n'.format(
+                        hostname=hostname, match=match)
+                    for key in match.keys():
+                        if not key in ssh_option_names:
+                            continue
+                        rr += '    {key} {value}\n'.format(key=key,
+                                                           value=match[key])
+                rr += '\n'
+    
+        rr += 'host {}\n'.format(host['name'])
+        for key, val in host.iteritems():
+            if not key in ssh_option_names:
+                continue
+            if not isinstance(val, (list, tuple)):
+                val = [val]
+            for vv in val:
+                rr += '    {key} {value}\n'.format(key=key, value=vv)
+        rr += '\n'
+    
+        rr += 'host {}-ports\n'.format(host['name'])
+        if not 'HostName' in host.keys():
+            host['HostName'] = host['name']
+        for key, val in host.iteritems():
+            if not key in ssh_option_names + ['LocalForward']:
+                continue
+            if not isinstance(val, (list, tuple)):
+                val = [val]
+            for vv in val:
+                rr += '    {key} {value}\n'.format(key=key, value=vv)
+                # rr += '    LocalForward {}-local:2375 localhost:2375\n'.format(host['name'])
+        for cont in host.get('containers', []):
+            ports = cont['image'].get('ports', [])
+            for port in ports + ["{}:22".format(sshport)]:
+                (p1, p2) = port.split(':')
+                rr += (
+                    "    LocalForward  {0}:{1} {2}:{1}\n".format(
+                        cont['name'], p1, cont['ip']))
+        rr += '\n'
+
+    for cont in host.get('containers', []):
+        rr += container_entry_template.format(**locals())
+    return rr
+
 
 def get_our_ssh_config():
     rr = ''
     for host in sd2.get_hosts():
-        from . import util
-        if util.is_localhost(host['name']):
-            continue
+        if not host.get("User"):
+            host['User'] = os.getenv('USER')
         try:
-            rr += '''\n########## GENERATED DO NOT MODIFY #####################\n'''
-            if host.get('match'):
-                matches = host.get('match')
-                for hostname in [host['name'], host['name'] + '-ports']:
-                    for match in matches:
-                        rr += 'Match originalhost {hostname} exec "{match[condition]}"\n'.format(
-                            hostname=hostname, match=match)
-                        for key in match.keys():
-                            if not key in ssh_option_names:
-                                continue
-                            rr += '    {key} {value}\n'.format(key=key,
-                                                               value=match[key])
-                    rr += '\n'
-            
-            rr += 'host {}\n'.format(host['name'])
-            for key, val in host.iteritems():
-                if not key in ssh_option_names:
-                    continue
-                if not isinstance(val, (list, tuple)):
-                    val = [val]
-                for vv in val:
-                    rr += '    {key} {value}\n'.format(key=key, value=vv)
-            rr += '\n'
-            
-            rr += 'host {}-ports\n'.format(host['name'])
-            for key, val in host.iteritems():
-                if not key in ssh_option_names + ['LocalForward']:
-                    continue
-                if not isinstance(val, (list, tuple)):
-                    val = [val]
-                for vv in val:
-                    rr += '    {key} {value}\n'.format(key=key, value=vv)
-                    # rr += '    LocalForward {}-local:2375 localhost:2375\n'.format(host['name'])
-            for cont in host.get('containers', []):
-                ports = cont['image'].get('ports', [])
-                for port in ports:
-                    (p1, p2) = port.split(':')
-                    rr += (
-                    "    LocalForward  {0}:{1} {0}:{1}\n".format(cont['name'],
-                                                                 p1))
-            rr += '\n'
-            
-            for cont in host.get('containers', []):
-                rr += container_entry_template.format(**locals())
+            rr += generate_for_host(host)
         except Exception as ex:
             sys.stderr.write("ERROR: Processing host {}\n".format(host['name']))
             raise
