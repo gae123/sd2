@@ -8,51 +8,9 @@ import os
 import sys
 
 import sd2
+from .file_rewriter import FileRewriter
 
-g_seperator_start = '################# SDSD starts here - DO NOT CHANGE BELOW #######################'
-g_seperator_end = '################# SDSD ends here - DO NOT CHANGE ABOVE ########################'
 g_ssh_config_path = os.path.join(os.getenv('HOME'), '.ssh', 'config')
-
-
-# Read .ssh config
-def read_ssh_config():
-    with open(g_ssh_config_path, 'r') as fd:
-        rr = fd.readlines()
-    rr = [x.rstrip() for x in rr]
-    before = []
-    after = []
-    mode = 'before'
-    for line in rr:
-        if mode == 'before':
-            if line != g_seperator_start:
-                before.append(line)
-            else:
-                mode = 'during'
-        elif mode == 'during':
-            if line == g_seperator_end:
-                mode = 'after'
-        else:
-            assert mode == 'after'
-            after.append(line)
-    
-    return (before, after)
-
-
-def write_ssh_config(before, rr, after):
-    with open(g_ssh_config_path, 'w') as fd:
-        for line in (before +
-                         [g_seperator_start,
-                          "# Generated on {}".format(datetime.datetime.now())
-                          ] +
-                         rr +
-                         [g_seperator_end] +
-                         after):
-            fd.write(line + '\n')
-
-
-def read_and_split_ssh_config():
-    contents = read_ssh_config()
-
 
 container_entry_template = '''
 
@@ -145,9 +103,10 @@ def get_our_ssh_config():
 
 
 def gen_ssh_config():
-    before, after = read_ssh_config()
+    fr = FileRewriter(g_ssh_config_path)
+    before, after = fr.read_config()
     rr = get_our_ssh_config()
-    write_ssh_config(
+    fr.write_config(
         before,
         rr.split('\n'),
         after
