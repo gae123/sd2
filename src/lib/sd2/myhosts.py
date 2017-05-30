@@ -3,7 +3,7 @@
 # Copyright (c) 2017 SiteWare Corp. All right reserved
 #############################################################################
 import sys
-
+ 
 initialized = False
 config_dct = {}
 imagesdict = {}
