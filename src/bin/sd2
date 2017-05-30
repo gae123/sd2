@@ -26,6 +26,13 @@ def init():
     global g_workspaces
     config_dct = sd2.read_config()
     sd2.myhosts.init(config_dct)
+    
+    # if not g_args.nointf:
+    #     for host in sd2.myhosts.get_hosts():
+    #         if not host.get('containers'):
+    #             continue
+    #         sd2.gen_interfaces.gen_interfaces(host['name'])
+    
     g_workspaces = config_dct['workspaces']
     # Normalize that host can be just a string
     for ws in g_workspaces:
@@ -96,6 +103,8 @@ def parse_arguments():
     parser.add_argument('--level', '-l', default='error',
                         help="Pass debug,info or error to set the debug level")
     parser.add_argument('--dryrun', '-n', action="store_true", default=False)
+    # parser.add_argument('--nointf', action="store_true", default=False,
+    #                     help="Do not generate interfaces on hosts")
     
     subparsers = parser.add_subparsers()
     

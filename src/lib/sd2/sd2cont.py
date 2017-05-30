@@ -10,7 +10,8 @@ import logging
 from . import util
 
 def create_start_docker(host_name, container_host_name, dryrun=False):
-    from . import myhosts
+    from . import myhosts, gen_interfaces
+    gen_interfaces.gen_interfaces(host_name)
     cmd = []
     ns_host_auth = myhosts.get_container_auth(container_host_name)
     if ns_host_auth:
