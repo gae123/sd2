@@ -38,7 +38,10 @@ def process_expansions(dct):
         if isinstance(val, (long,int,bool)):
             return val
         if isinstance(val, basestring):
-            return  string.Template(val).substitute(dct)
+            dct2 = copy.deepcopy(dct)
+            for env_key, env_val in os.environ.iteritems():
+                dct2[env_key] = env_val
+            return  string.Template(val).safe_substitute(dct2)
         if isinstance(val, list):
             return [expand(x, dct) for x in val]
         if isinstance(val, dict):
