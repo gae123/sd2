@@ -21,11 +21,14 @@ class RestartEcxeption(Exception):
     pass
 
 def init():
-    sd2.gen_all.gen_all()
-    logging.info("SD2INIT")
+    logging.info("SD2INIT:EE")
     global g_workspaces
     config_dct = sd2.read_config()
+    if g_args.showconfig:
+        print config_dct
+        sys.exit(0)
     sd2.myhosts.init(config_dct)
+    sd2.gen_all.gen_all()
     
     # if not g_args.nointf:
     #     for host in sd2.myhosts.get_hosts():
@@ -103,6 +106,8 @@ def parse_arguments():
     parser.add_argument('--level', '-l', default='error',
                         help="Pass debug,info or error to set the debug level")
     parser.add_argument('--dryrun', '-n', action="store_true", default=False)
+    parser.add_argument('--showconfig', action="store_true", default=False,
+                        help="Just show config and exit")
     # parser.add_argument('--nointf', action="store_true", default=False,
     #                     help="Do not generate interfaces on hosts")
     

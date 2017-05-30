@@ -162,6 +162,8 @@ be inherited later.
  
 ## Troubleshooting
 1. Start the commaind as following `sd2 -l debug run` to see what it is doing
+1. Start the command as `sd2 --showconfig run`. It will show the config file
+as it is after substitutions and will exit.
 1. Try to ssh to the DHs. You should be able to ssh to any of them from a 
 terminal in your EH.
  
