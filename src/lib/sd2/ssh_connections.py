@@ -7,6 +7,7 @@ import subprocess
 import fcntl
 import os
 import sys
+import datetime
 
 from .util import kill_subprocess_process
 from . import myhosts
@@ -75,7 +76,7 @@ class SSHConnections(Connections):
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
                         close_fds=ON_POSIX)
-
+                    host['ssh_last_connection'] = datetime.datetime.now()
                 except Exception as ex:
                     logging.warning("SSH:START:EXC: %s", ex)
                 fl = fcntl.fcntl(host['sshproc'].stderr, fcntl.F_GETFL)
