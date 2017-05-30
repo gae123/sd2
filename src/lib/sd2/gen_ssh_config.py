@@ -22,6 +22,7 @@ host {cont[name]}
     UserKnownHostsFile /dev/null
     IdentityFile {host[IdentityFile]}
     ServerAliveInterval 60
+    ConnectTimeout 5
 '''
 
 ssh_option_names = [
@@ -31,7 +32,8 @@ ssh_option_names = [
     'IdentityFile',
     'ServerAliveInterval',
     'StrictHostKeyChecking',
-    'UserKnownHostsFile'
+    'UserKnownHostsFile',
+    'ConnectTimeout'
 ]
 
 def generate_for_host(host):
