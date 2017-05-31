@@ -3,7 +3,7 @@ matrix:
   include:
   - os: linux
     sudo: required
-    python: 2.7
+    language: generic
     env:
       - TOXENV=2.7
       - SD2OS=Linux
@@ -13,7 +13,7 @@ matrix:
       - TOXENV=py27
       - SD2OS=Darwin
 install:
-- ./.travis/install.sh
+  - ./.build/install.sh
 script: cd build && make all
 deploy:
   provider: releases

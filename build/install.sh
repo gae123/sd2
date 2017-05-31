@@ -1,6 +1,8 @@
 #!/bin/bash
 
-if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
+readonly OS=$(uname)
+
+if [[ $OS == 'Darwin' ]]; then
 
     # Install some custom requirements on OS X
     # e.g. brew install pyenv-virtualenv
@@ -13,9 +15,12 @@ if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
             # Install some custom Python 3.3 requirements on OS X
             ;;
     esac
-else
+elif [[ $OS == 'Linux' ]]; then
     # Install some custom requirements on Linux
+    sudo apt-get -y install python python-pip pylint make
     sudo apt-get -y install build-essential python-dev
+else
+    error
 fi
 
 pip install jinja2

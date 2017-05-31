@@ -6,6 +6,8 @@ TOP := $(realpath ..)
 SD2OS := $(shell uname)
 OUT := $(TOP)/out/$(SD2OS)
 
+export PYTHONPATH := $(PYTHONPATH):lib
+
 PYTHON_SOURCES := $(shell find $(TOP) -name '*.py')
 PYTHON_CHECKED := $(patsubst %.py,$(OUT)/checked/%.py.checked,$(PYTHON_SOURCES))
 JSON_SOURCES := $(shell find $(TOP) -name '*.json')
@@ -17,15 +19,13 @@ DOCKER_CHECKED := $(patsubst %,$(OUT)/checked/%.checked,$(DOCKER_SOURCES))
 SOURCES_CHECKED := $(PYTHON_CHECKED) $(JSON_CHECKED) $(BASH_CHECKED) $(DOCKER_CHECKED)
 
 
-$(OUT)/.lint build: export PYTHONPATH=$PYTHONPATH:lib
-
 all: $(SOURCES_CHECKED) $(OUT)/.lint build FORCE
 
 build:
-	(rm -rf $(OUT)/install && \
+	( rm -rf $(OUT)/install && \
 	 mkdir -p $(OUT)/install && \
 	 cd $(OUT)/install && \
-	 pyinstaller -F $(TOP)/src/bin/sd2 && \
+	 ~/.local/bin/pyinstaller -F $(TOP)/src/bin/sd2 && \
 	 cp dist/sd2 dist/sd2-$(SD2OS))
 
 $(OUT)/.lint: $(PYTHON_SOURCES)
