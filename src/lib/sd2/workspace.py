@@ -15,4 +15,4 @@ class Workspace(object):
         rr.extend([x for x in hosts if myhosts.exists_container(x['name'])])
         for host in hosts:
             assert 'name' in host
-        return hosts
+        return rr
