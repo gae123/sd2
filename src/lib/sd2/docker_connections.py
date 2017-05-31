@@ -75,6 +75,10 @@ class DockerConnections(Connections):
                              proc.returncode)
                 host['proc'] = None
                 host['last_connection'] = datetime.datetime.now()
+                if proc.returncode == 0:
+                    from .events import events
+                    events.emit(
+                        {"hostname": host['name'], "action": "start"})
 
         # Every 15 minutes repeat
         if (host.get('last_connection') and

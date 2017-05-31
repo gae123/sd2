@@ -66,6 +66,8 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
     if (not dryrun):
         logging.info("EXEC %s", command)
         util.remote_system(host_name, command)
+        from .events import events
+        events.emit({"hostname": container_host_name, "action": "start"})
     else:
         print(command)
 

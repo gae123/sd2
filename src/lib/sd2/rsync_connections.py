@@ -53,9 +53,11 @@ def get_rsync_cmd(ws, host):
 
 class RsyncConnections(Connections):
     def __init__(self, args, workspaces):
+        from .events import events
         global g_args, g_workspaces
         g_args = args
         g_workspaces = workspaces
+        self._listener = events.listen()
 
     def handle_host(self, wsi, host):
         if g_args.hosts and not host['name'] in g_args.hosts:
@@ -83,11 +85,13 @@ class RsyncConnections(Connections):
                              proc.returncode)
                 host['rsyncproc'] = None
                 host['lastsync'] = datetime.datetime.now()
+                host['lastrc'] = proc.returncode
 
         # Every 15 minutes rsync
+        period = 15*60 if host.get('lastrc',1) == 0 else 30
         if (host.get('lastsync') and
                     (datetime.datetime.now() - host[
-                        'lastsync']).seconds > 15 * 60):
+                        'lastsync']).seconds > period):
             host['needsync'] = 1
         if host.get('needsync') == 0:
             return
@@ -104,6 +108,16 @@ class RsyncConnections(Connections):
         host['needsync'] = 0
 
     def poll(self):
+        from .events import events
+        while events.is_event_pending(self._listener):
+            event = events.get_pending_event(self._listener)
+            if event["action"] != "start":
+                continue
+            for wsi in g_workspaces:
+                for host in Workspace(wsi).get_targets():
+                    if host['name'].startswith(event['hostname']):
+                        host['needsync'] = 1
+        
         for wsi in g_workspaces:
             for host in Workspace(wsi).get_targets():
                 self.handle_host(wsi, host)
