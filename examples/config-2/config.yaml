@@ -1,0 +1,39 @@
+
+images:
+  - name: ubuntu1604
+    docker_name: pako/ubuntu1604-ssh-nginx:1.1
+    extra_flags: --entrypoint /home/${USER}/projects/0.sd2/examples/entrypoint.sh
+    ports:
+      - 80:80
+
+hosts:
+  - name: paros
+    base: 0     # The internal ip of these containers will be 172.172.0.100, 172.172.0.101 etc
+    IdentityFile: ~${USER}/.ssh/id_rsa-2015
+
+    containers:
+     - ubuntu1604
+     - ubuntu1604
+
+workspaces:
+  - name: any
+    abstract: yes
+    paths:
+      - exclude:
+          - '*.pyc'
+          - '*.swp'
+          - '*.swpx'
+  - name: sd2
+    abstract: yes
+    extends: any
+    delete: yes
+    paths:
+      - exclude:
+        - /out
+        - /out/**
+  - name: 0.sd2
+    extends: sd2
+    source_root: ${HOME}/projects/0.sd2
+    dest_root: /tmp/0.sd2
+    targets:
+      - paros-0
