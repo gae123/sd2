@@ -6,12 +6,14 @@
 import copy
 import os
 import logging
+import sys
 
 from . import util
 
 def create_start_docker(host_name, container_host_name, dryrun=False):
     from . import myhosts, gen_interfaces
-    gen_interfaces.gen_interfaces(host_name)
+    if not dryrun:
+        gen_interfaces.gen_interfaces(host_name)
     cmd = []
     ns_host_auth = myhosts.get_container_auth(container_host_name)
     if ns_host_auth:
@@ -93,6 +95,7 @@ def remove_container_by_hostname(host_name, container_host_name, dryrun):
         print(cmd)
 
 def create_start_docker_if_needed(host_name, container_host_name, dryrun, upgrade):
+    rr = False
     from . import myhosts
     running = None
     containers = util.remote_subprocess_check_output(host_name,
@@ -130,9 +133,11 @@ def create_start_docker_if_needed(host_name, container_host_name, dryrun, upgrad
     if create_new_one:
         print(container_host_name + ' Creating a new one...')
         create_start_docker(host_name, container_host_name, dryrun)
+        rr = True
     cmd = 'sudo docker exec -i -t {} su - {}'.format(
         container_host_name, os.getenv('USER'))
     print "Attach by running: '{}'".format(cmd)
+    return rr
     
 
 def do_containers(host, containers, force, dryrun, upgrade):
@@ -144,8 +149,11 @@ def do_containers(host, containers, force, dryrun, upgrade):
                 util.remote_system(host, cmd)
             else:
                 print(cmd)
+    ret = False
     for cont in containers:
-        create_start_docker_if_needed(host, cont, dryrun, upgrade)
+        ret0 = create_start_docker_if_needed(host, cont, dryrun, upgrade)
+        ret = ret or ret0
+    return ret
     
     
 def main(args):
@@ -165,9 +173,12 @@ def main(args):
     # if the user just passed 0 convert it too hostname-0
     containers = [(x if x.startswith(args.hostname)
                     else (args.hostname + '-' + x)) for x in containers]
-    do_containers(args.hostname, containers, args.force, args.dryrun, args.upgrade)
+    ret = do_containers(args.hostname, containers, args.force, args.dryrun, args.upgrade)
     
     logging.debug("sd2cont: Starting %s on %s", containers, args.hostname)
+    
+    # 0 means it did start one or more
+    sys.exit(0 if ret else 1)
     
     
 def add_argument_parsing(subparsers):

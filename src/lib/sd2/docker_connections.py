@@ -69,7 +69,7 @@ class DockerConnections(Connections):
                 # logging.debug("SKIP:SYNC %s:%s", wsi['name'], host['name'])
                 return
             else:
-                log = logging.info if proc.returncode == 0 else logging.error
+                log = logging.info if proc.returncode in (0,1) else logging.error
                 log("DOCKER:RC %s=%s",
                              host['name'],
                              proc.returncode)
