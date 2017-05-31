@@ -122,6 +122,11 @@ you should be able to open
 a browser and point it to http://paros-0 or http://paros-1 and see the nginx
 page.
 
+A second example is shown 
+[here](https://raw.githubusercontent.com/gae123/sd2/master/examples/config-2/config.yaml). 
+It builds on the first one by adding two workspaces that we
+rsync them into our containers. 
+
 
 > More coming soon... I know you cannot do much before I share some examples
 
@@ -166,6 +171,9 @@ be inherited later.
 as it is after substitutions and will exit.
 1. Try to ssh to the DHs. You should be able to ssh to any of them from a 
 terminal in your EH.
+1. You can see the containers running on a DH by runnign `sudo ssh DH sudo docker ps`
+1. You can delete all the containers runnin on a DH by running 
+`sudo ssh DH 'sudo docker rm -f $(docker ps -qa)'`
  
 ## FAQ
 1. When I run docker directly on the MacOS why can't I just mount the MacOS 

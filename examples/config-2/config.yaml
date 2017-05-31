@@ -16,6 +16,7 @@ hosts:
      - ubuntu1604
 
 workspaces:
+  # An abstract workspace shared by all my workspaces
   - name: any
     abstract: yes
     paths:
@@ -23,6 +24,9 @@ workspaces:
           - '*.pyc'
           - '*.swp'
           - '*.swpx'
+          - .idea
+          - '.idea/**'
+  # An abstract workspace for all the sd2 workspaces
   - name: sd2
     abstract: yes
     extends: any
@@ -31,9 +35,17 @@ workspaces:
       - exclude:
         - /out
         - /out/**
+  # A concrete workspace
   - name: 0.sd2
     extends: sd2
-    source_root: ${HOME}/projects/0.sd2
-    dest_root: /tmp/0.sd2
+    source_root: ${HOME}/projects/${name} # ${name} will be 0.sd2
+    dest_root: /tmp/${name}
     targets:
       - paros-0
+  # Another concrete workspace
+  - name: 1.sd2
+    extends: sd2
+    source_root: ${HOME}/projects/${name} # ${name} will be 1.sd2
+    dest_root: /tmp/${name}
+    targets:
+      - paros-1
