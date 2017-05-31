@@ -13,7 +13,7 @@ matrix:
       - TOXENV=py27
       - SD2OS=Darwin
 install:
-  - ./.build/install.sh
+  - ./build/install.sh
 script: cd build && make all
 deploy:
   provider: releases
