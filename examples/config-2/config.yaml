@@ -1,7 +1,7 @@
 
 images:
   - name: ubuntu1604
-    docker_name: pako/ubuntu1604-ssh-nginx:1.1
+    docker_name: pako/ubuntu1604-ssh-rsync:1.0
     extra_flags: --entrypoint /home/${USER}/projects/0.sd2/examples/entrypoint.sh
     ports:
       - 80:80

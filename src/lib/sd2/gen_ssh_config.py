@@ -3,7 +3,6 @@
 # Copyright (c) 2017 SiteWare Corp. All right reserved
 #############################################################################
 
-import datetime
 import os
 import sys
 

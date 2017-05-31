@@ -54,20 +54,16 @@ need one machine (e.g. a MacOS notebook) with docker installed that will
  play the role of both the editing and the development machine.
 
 1. Editing Host Requirements
-   1. rsync
-   1. ssh clinet
+   1. Install rsync & ssh client
    1. fswatch (see [here](http://stackoverflow.com/questions/1515730/is-there-a-command-like-watch-or-inotifywait-on-the-mac))
    1. Add your user to sudoers without a password requirement (see [here](https://askubuntu.com/questions/168461/how-do-i-sudo-without-having-to-enter-my-password))
 1. Development Host(s) Requirements
-   1. rsync
-   1. ssh server
-   1. docker
+   1. Install rsync, ssh server and docker
    1. Add your user to sudoers (see [here](https://askubuntu.com/questions/168461/how-do-i-sudo-without-having-to-enter-my-password))
-   1. ssh server
 1. Other
    1. Before you start you need to make sure that you can use ssh with  
       certificates to login from the editing machine to the development host(s). 
-      Do not add the hosts to .ssh/config or /etc/hosts.
+      Do not add the hosts to .ssh/config or /etc/hosts, the tool will take care of this.
    1. You also need to create your container image(s). The image will contain your 
       development environment. Evertyhing but your IDE should be there.
       Here are some suggestions to follow to make images compatible with 
@@ -76,6 +72,7 @@ need one machine (e.g. a MacOS notebook) with docker installed that will
        so it does not exit.
        1. You will want to access inside the container so install ssh server 
           and maybe vnc and screeen.
+       1. Install rsync if you plan to copy workspaces into the container.   
        1. Your container will run using the same username/id you have on the 
        host. It is a good idea to use a script that relocates exising users 
        in the container os that have the same userid with the one you have 

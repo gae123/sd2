@@ -2,8 +2,8 @@
 
 set -e   # exit on first error
 
-readonly REPO=ubuntu1604-ssh-nginx
-readonly TAG=1.1
+readonly REPO=ubuntu1604-ssh-rsync
+readonly TAG=1.0
 
 readonly SCRIPTPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
