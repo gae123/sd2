@@ -62,10 +62,14 @@ def deal_with_changed_file(wi, fpath):
             for target in Workspace(wi).get_targets():
                 if g_args.hosts and not target['name'] in g_args.hosts:
                     continue
+                if wi.get('dest_root'):
+                    dpath = fpath.replace(wi['source_root'], wi['dest_root'])
+                else:
+                    dpath = fpath.replace(os.environ.get('HOME'), '~')
                 cmd = "scp -p {} {}:{}".format(
                     fpath,
                     target['name'],
-                    fpath.replace(os.environ.get('HOME'), '~'))
+                    dpath)
                 if g_args.dryrun:
                     cmd = 'echo ' + cmd
                 logging.info(cmd)
