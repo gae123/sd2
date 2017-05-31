@@ -127,9 +127,5 @@ def get_hosts_dict(enabled=True):
         init()
     return {x['name']: x for x in get_hosts(enabled)}
 
-def is_known_host(hostname):
-    if not initialized:
-        init()
-    return hostname in hostsdict.keys()
 
     
