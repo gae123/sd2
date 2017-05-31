@@ -25,7 +25,7 @@ build:
 	( rm -rf $(OUT)/install && \
 	 mkdir -p $(OUT)/install && \
 	 cd $(OUT)/install && \
-	 ~/.local/bin/pyinstaller -F $(TOP)/src/bin/sd2 && \
+	 pyinstaller -F $(TOP)/src/bin/sd2 && \
 	 cp dist/sd2 dist/sd2-$(SD2OS))
 
 $(OUT)/.lint: $(PYTHON_SOURCES)

@@ -24,7 +24,7 @@ else
 fi
 
 pip install jinja2
-pip install pyinstaller
+sudo pip install pyinstaller
 pip install pyyaml
 pip install jsonschema
 pip install pylint
