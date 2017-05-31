@@ -101,7 +101,11 @@
         "name": {"type": "string"},
         "abstract": {"type": "boolean"},
         "extends": {"type": "string"},
-        "source_root": {"type": "string"},
+        "source_root": {
+          "title": "The root of the workspace, required for non abstract",
+          "type": "string"
+        },
+        "dest_root": {"type": "string"},
         "delete": {"type": "boolean"},
         "paths": {
           "type": "array",
