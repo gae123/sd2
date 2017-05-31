@@ -8,7 +8,6 @@ images:
 
 hosts:
   - name: paros
-    base: 0     # The internal ip of these containers will be 172.172.0.100, 172.172.0.101 etc
     IdentityFile: ~${USER}/.ssh/id_rsa-2015
 
     containers:

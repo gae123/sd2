@@ -31,10 +31,14 @@
 
     "host": {
       "type": "object",
-      "required": ["name"],
+      "required": ["name", "IdentityFile"],
       "additionalProperties": false,
       "properties": {
         "name": {"type": "string"},
+        "base": {
+          "title": "An optional unig per host number that is used for the IP address",
+          "type": "integer"
+        },
         "abstract": {"type": "boolean"},
         "extends": {"type": "string"},
         "User": {"type": "string"},

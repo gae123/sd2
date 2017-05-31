@@ -19,12 +19,12 @@ g_root_dir = os.getenv('SD2_CONFIG_DIR', os.path.join(os.getenv('HOME'), '.sd2')
 def ensure_base(hosts):
     hosts_by_base = {}
     for ii, host in enumerate(hosts):
-        if host.get('base') is None:
-            sys.stderr.write(
-                "ERROR: base address for {} was not found.\n".format(
-                    host['name']))
-            sys.exit(1)
-        base = host.get('base')
+        # if host.get('base') is None:
+        #     sys.stderr.write(
+        #         "ERROR: base address for {} was not found.\n".format(
+        #             host['name']))
+        #     sys.exit(1)
+        base = host.get('base', ii)
         if hosts_by_base.get(base) is not None:
             sys.stderr.write(
                 "ERROR: {} and {} have the same base {}.\n".format(

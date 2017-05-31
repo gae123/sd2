@@ -27,8 +27,7 @@ def init(a_config_dct=None):
     
     
     for ii,host in enumerate(hosts):
-        base = host.get('base')
-        assert base is not None
+        base = host.get('base', ii)
         host['local-ip'] = "172.172.{}.100".format(base)
         containers = []
         host_name = host['name']
