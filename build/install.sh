@@ -28,3 +28,4 @@ pip install pyinstaller
 pip install pyyaml
 pip install jsonschema
 pip install pylint
+type pyinstaller

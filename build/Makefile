@@ -6,7 +6,7 @@ TOP := $(realpath ..)
 SD2OS := $(shell uname)
 OUT := $(TOP)/out/$(SD2OS)
 
-export PYTHONPATH := $(PYTHONPATH):lib
+export PYTHONPATH := $(PYTHONPATH):$(TOP)/src/lib
 
 PYTHON_SOURCES := $(shell find $(TOP) -name '*.py')
 PYTHON_CHECKED := $(patsubst %.py,$(OUT)/checked/%.py.checked,$(PYTHON_SOURCES))
