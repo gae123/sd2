@@ -1,7 +1,7 @@
 
 images:
-  - name: ubuntu1604
-    docker_name: pako/ubuntu1604-ssh-nginx:1.0
+  - name: "ubuntu1604"  # The name that will be used in this file
+    docker_name: "pako/ubuntu1604-ssh-nginx:1.0" # The docker repo an version
     extra_flags: --entrypoint /home/${USER}/projects/0.sd2/examples/entrypoint.sh
     ports:
       - 80:80
@@ -12,5 +12,5 @@ hosts:
     IdentityFile: ~${USER}/.ssh/id_rsa-2015
 
     containers:
-     - ubuntu1604
-     - ubuntu1604
+     - "ubuntu1604"   # This container will be called paros-0
+     - "ubuntu1604"   # This container will be called paros-1

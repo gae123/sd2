@@ -1,57 +1,61 @@
 [![Build Status](https://travis-ci.org/gae123/sd2.svg?branch=master)](https://travis-ci.org/gae123/sd2)
 
 # sd<sup>2</sup>: Software Defined Software Development™
-The Software Defined Software Development Process aka sd<sup>2</sup> is 
-a modern Software Development approach to help developers 
-concurrenlty work with multiple projects 
-each with multiple branches, potentially each with its own
+The Software Defined Software Development Process aka sd<sup>2</sup> and pronounced 
+sd-square is 
+a modern Software Development approach. It aims to assist developers 
+who work concurrently with multiple source bases, 
+each with multiple branches and potentially its own technology
 stack. 
 
-sd<sup>2</sup> relies heavily on a **single** text 
-file that describes a developer's development environments and in containers 
+sd<sup>2</sup> relies heavily on a **single** text configuration
+file that describes a developer's development environments. It also relies
+ heavily on containers 
 that isolate the different environments. sd<sup>2</sup> seperates the editing 
 environment from the environment where compilation and testing takes place. 
 In some sense, sd2 brings the advantages of a microservices environment to 
-the development phase even when you do not use microservices in production.
+the development phase even when you do not use microservices in your
+architecture.
 
-This project provides a tool called sd2 that assists developers embracing the
+This repository provides a tool called `sd2` that assists developers embracing the
 sd<sup>2</sup> process.
 
 ## The Basic Concepts
-In sd2 you split your editing, browsing and source control activities from all 
+In sd<sup>2</sup> you split your editing, browsing and source control activities from all 
 the other development activities. Editing is done on your developer 
-workstation that we will call editing host or EH. All the other development 
-activities will be done inside containers (DC) that can run anywhere you want. 
+workstation that we will call editing host(EH). All the other development 
+activities are performed containers (DC) that can run anywhere you want. 
 The containers run on hosts that we call development hosts (DH).
 
 ![Use Case](https://docs.google.com/drawings/d/1uO3umvqVMIM2HnrXJwRAgAX2UWRYNVqEKDTNggXlEIc/pub?w=960&h=720)
 
 ## sd2 advantages
 1. First of all, sd2 builds on top of all the lightweight virtualization advantages:
-    1. Start a development stack in mseconds, exactly the same stack you started last time.
+    1. Start a development stack in milliseconds, exactly the same stack you started last time.
     1. Keep multiple development stacks isolated from each other. 
     By separating EH and DH/DC you can now version independently your 
     EH from your DH & DC where your development environment runs. 
     So now you can work on multiple projects (or releases of the same project) 
-    at the same time that have incompatible stacks.
-    1. In a team environment, guarrantee that everybody has exactly the 
+    with incompatible stacks at the same time.
+    1. In a team environment, sd<sup>2</sup> guarrantee that every
+     developer has exactly the 
     same development stack independent of the editing environment they use.
 1. sd2 uses a combination of tools to make sure that when you change a file on 
 the EH, the file is copied to the destination(s) almost instanteneoulsy.
 1. All generated files/artifacts are generated in the DHs. Since you only 
 commit on EHs, there is no chance for accidentally commit generated artifacts.
-1. Modern IDEs are heavyweight and have perofrmance requirements that increse 
+1. Modern IDEs are heavyweight and have perofrmance requirements that increase 
 with bigger projects. sd2 uses multiple replicas of the source code so both the 
 IDE and the compilers/transpilers etc can work independently.
 
 ## Supported Platforms
 * **Editing Host (EH)**: MacOS  (Linux should be easy but has not been tested)
-* **Development Host (DH)**: MacOs or Linux 
+* **Development Host (DH)**: Linux (MacOs should be easy but has not been tested) 
 
 ## Prerequisites
-The tools have been tested on MacOS and Ubuntu hosts. At a minimum you 
+The tools have been tested on MacOS and Ubuntu hosts. In the simplest scenario you 
 need one machine (e.g. a MacOS notebook) with docker installed that will
- play the role of both the editing and the development machine.
+ play the role of both the editing and the development host.
 
 1. Editing Host Requirements
    1. Install rsync & ssh client
@@ -64,7 +68,7 @@ need one machine (e.g. a MacOS notebook) with docker installed that will
    1. Before you start you need to make sure that you can use ssh with  
       certificates to login from the editing machine to the development host(s). 
       Do not add the hosts to .ssh/config or /etc/hosts, the tool will take care of this.
-   1. You also need to create your container image(s). The image will contain your 
+   1. You also need to create your container image(s). The image(s) will contain your 
       development environment. Evertyhing but your IDE should be there.
       Here are some suggestions to follow to make images compatible with 
       sd<sup>2</sup>:
@@ -76,7 +80,7 @@ need one machine (e.g. a MacOS notebook) with docker installed that will
        1. Your container will run using the same username/id you have on the 
        host. It is a good idea to use a script that relocates exising users 
        in the container os that have the same userid with the one you have 
-       on the host (see [this tool](https://github.com/schmidigital/permission-fix/blob/master/tools/permission_fix).
+       on the host (see [this](https://raw.githubusercontent.com/gae123/sd2/master/examples/entrypoint.sh).
        
 ## How to set it up
 sd2 relies on a configuration file that defines your DHs, your conainers/images 
@@ -90,9 +94,9 @@ If you change the configuration file, the daemon automatically will change what
 it is doing to match the new configuration.
 
 You can download the appropriate sd2 binary for your platform 
-from the [releases](/releases) section. Put it
+from the [releases](https://github.com/gae123/sd2/releases) section. Put it
 somewhere so that it is in your PATH, create your configuration file that 
-describes your environment, open a terminal and run sd2.
+describes your environment, open a terminal and run sd2 from the command line.
 
 ## Configuration 
 
@@ -111,7 +115,7 @@ A very simple configuration file is shown
 [here](https://raw.githubusercontent.com/gae123/sd2/master/examples/config-1/config.yaml)
 It will start two containers on a host called paros that run an image 
 that has ubuntu 16.04, ssh and nginx.
-The first one will be called paros-0 and the second will be called paros-1. From the
+The first container will be called paros-0 and the second will be called paros-1. From the
 EH, you
 should be able to ssh to paros-0 and paros-1. You will find yourself in your
 own home directory in paros, using your username. On your EH 
@@ -121,31 +125,45 @@ page.
 
 A second example is shown 
 [here](https://raw.githubusercontent.com/gae123/sd2/master/examples/config-2/config.yaml). 
-It builds on the first one by adding two workspaces that we
-rsync them into our containers. 
+It builds on the first one by adding two workspaces *0.sd2* and *1.sd2* that are
+replicated into the containers under /tmp. Note how the workspaces 
+configuration sections are built using inheritance
+to avoid replicating the "exclude" paths.  *0.sd2* and *1.sd2* inherit from *sd2* which
+inherits from *any*.
 
+Another example shown
+[here](https://raw.githubusercontent.com/gae123/sd2/master/examples/config-2/config.yaml)
+shows two images *ubuntu1404* and *ubuntu1604*. It also adds four containers
+*paros-0*, *paros-1*, *paros-2* and *paros-3*. *paros-0* and *paros-1* use the 
+*ubuntu1404*
+image. The other two containers use the *ubuntu1604* image.
+Finally, there are two workspaces *0.sd2* and *1.sd2*. *0.sd2* is replicated to *paros-0*
+and *paros-2*. *1.sd2* is replicated to *paros-1* and *paros-3*.
 
-> More coming soon... I know you cannot do much before I share some examples
 
 ## Advanced Configuration Topics
 **Expansion**:
-String values are treated as python string templates with the already parsed
-config file as the context. So for instance if you put `$name` somewhere it will
-be substituted by the earlier value of name. (Use `$$` to escape `$`). 
+String values are treated as [python string templates](https://docs.python.org/2/library/string.html#template-strings) with the already parsed
+config file as the context. So for instance if you put `$name` or `${name}` somewhere it will
+be substituted by the earlier value of name. (If you need to 
+use the dollar sign character `$$` to escape `$`). Environment variables are also
+available this way.
 
 **Jinja Template Support**
 If the config.yaml file starts with the line `#!jinja2`
 sd2 treats the configuration file as a [jinja2 template](http://jinja.pocoo.org/docs/2.9/). 
-The tool first processes the file
-and then parses it as yaml. A dictionary with the environment variables
-is passed as the context for the jinja2 template rendering. So for instane if
+The tool first processes the jinja2 file
+and then parses it as yaml. 
+ 
+ By default, a dictionary with the environment variables
+is passed as the context for the jinja2 template rendering. So for instance if
 you have `{{USER}}` in the file it will be substituted with the USER environment
-variabl.
+variable.
 
-Otherwise, if there is an executable called ~/.sd2/config,
+Furthermore, if there is an executable called ~/.sd2/config,
 the executable is first executed, and its output is treated as json. Then this json
 is parsed and provided as context to the the jinja2 parser. This allows to do 
-very cool initializations without any programming.
+very cool initializations.
 
 **Inheritance**
 In the workspaces and hosts section you can create abstract sections that do 
@@ -158,14 +176,15 @@ be inherited later.
  docker images, we expect that are already available and published in 
  a local or remote repository.
 1. Although this might change in the future, you are currently responsible to
-   set up your DH (it really only needs a account with your user name,
-   ssh access and docker installed).
+   set up your DH (a DH really only needs an account with your user name,
+   ssh access and docker + rsync installed).
  
  
 ## Troubleshooting
 1. Start the commaind as following `sd2 -l debug run` to see what it is doing
 1. Start the command as `sd2 --showconfig run`. It will show the config file
 as it is after substitutions and will exit.
+1. Start the command as `sd2 --showschema run`. It will show the json schema file.
 1. Try to ssh to the DHs. You should be able to ssh to any of them from a 
 terminal in your EH.
 1. You can see the containers running on a DH by runnign `sudo ssh DH sudo docker ps`
@@ -175,7 +194,7 @@ terminal in your EH.
 ## FAQ
 1. When I run docker directly on the MacOS why can't I just mount the MacOS 
 file system on the container?  
-This will work but in most cases, it will have sever performance implications. 
+This will work but in most cases, it will have severe performance implications. 
 You can read more about the issue [here](https://forums.docker.com/t/file-access-in-mounted-volumes-extremely-slow-cpu-bound/8076/174).
 1. Is sd2 secure when the development host is across the internet?  
 sd2 always uses ssh to communicate from the editing machine to the 
@@ -191,6 +210,9 @@ multiple containers to access the same repository.
     
     All the changes are done in a very safe way that does not alter what is 
     already in the files.
+1. What IP addresses do the containers use?  
+    The system automatically assigns addresses in the 172.30.X.X private address
+    range. It uses the 3rd octet for the DH and the 4 octet for the containers.
  
 ## Future Directions
 

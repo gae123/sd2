@@ -1,16 +1,24 @@
 
 images:
+  - name: ubuntu1404
+    docker_name: pako/ubuntu1404-ssh-rsync:1.0
+    extra_flags: --entrypoint /home/${USER}/projects/0.sd2/examples/entrypoint.sh
+
   - name: ubuntu1604
     docker_name: pako/ubuntu1604-ssh-rsync:1.0
     extra_flags: --entrypoint /home/${USER}/projects/0.sd2/examples/entrypoint.sh
+
 
 hosts:
   - name: paros
     IdentityFile: ~${USER}/.ssh/id_rsa-2015
 
     containers:
-     - "ubuntu1604"    # This will be called paros-0
-     - "ubuntu1604"    # This will be called paros-1
+     - "ubuntu1404"   # paros-0
+     - "ubuntu1404"   # paros-1
+     - "ubuntu1604"   # paros-2
+     - "ubuntu1604"   # paros-3
+
 
 workspaces:
   # An abstract workspace shared by all my workspaces
@@ -30,19 +38,22 @@ workspaces:
     delete: yes
     paths:
       - exclude:
-        - "/out"      # The artifacts directory exists only on the DH
+        - /out
+        - /out/**
         - "/.git"     # we do version control on EH so we do not copy it over
-  # A concrete workspace
+  # An actual workspace
   - name: 0.sd2
     extends: sd2
     source_root: ${HOME}/projects/${name} # ${name} will be 0.sd2
     dest_root: /tmp/${name}
     targets:
       - paros-0
-  # Another concrete workspace
+      - paros-2
+  # Another actual workspace
   - name: 1.sd2
     extends: sd2
     source_root: ${HOME}/projects/${name} # ${name} will be 1.sd2
     dest_root: /tmp/${name}
     targets:
       - paros-1
+      - paros-3
