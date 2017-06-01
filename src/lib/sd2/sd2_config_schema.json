@@ -41,7 +41,10 @@
         },
         "abstract": {"type": "boolean"},
         "extends": {"type": "string"},
-        "User": {"type": "string"},
+        "User": {
+          "type": "string",
+          "description": "Used in .ssh/config defaults to the $USER who runs sd2"
+        },
         "Port": {"type": "integer"},
         "IdentityFile":  {"type": "string"},
         "StrictHostKeyChecking": {"type": "string"},
@@ -56,6 +59,7 @@
         },
         "containers": {
           "type": "array",
+          "description": "List of containers to run on this host",
           "items": {
             "type": "object",
             "oneOf": [
@@ -73,7 +77,12 @@
       "additionalProperties": false,
       "properties": {
         "name": {"type": "string"},
-        "imagename": {"type": "string"}
+        "imagename": {"type": "string"},
+        "upgrade": {
+          "type": "boolean",
+          "description": "If the containers are not running with the right image restart them.",
+          "default": false
+        }
       }
     },
 
