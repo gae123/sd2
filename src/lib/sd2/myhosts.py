@@ -28,7 +28,7 @@ def init(a_config_dct=None):
     
     for ii,host in enumerate(hosts):
         base = host.get('base', ii)
-        host['local-ip'] = "172.172.{}.100".format(base)
+        host['local-ip'] = "172.30.{}.100".format(base)
         containers = []
         host_name = host['name']
         for cont, imagename in enumerate(host.get('containers', [])):
@@ -36,7 +36,7 @@ def init(a_config_dct=None):
                                                   basestring) else \
                         imagename['imagename']
             cont = {
-                'ip': "172.172.{}.{}".format(base, 101 + cont),
+                'ip': "172.30.{}.{}".format(base, 101 + cont),
                 'image': imagesdict[image_name],
                 'name': "{}-{}".format(host_name, (
                     cont if isinstance(imagename, basestring) else imagename.get(
