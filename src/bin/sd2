@@ -23,6 +23,9 @@ class RestartEcxeption(Exception):
 def init():
     logging.info("SD2INIT:EE")
     global g_workspaces
+    if g_args.showschema:
+        print sd2.sd2_config_schema
+        sys.exit(0)
     config_dct = sd2.read_config()
     if g_args.showconfig:
         print config_dct
@@ -106,6 +109,8 @@ def parse_arguments():
     parser.add_argument('--level', '-l', default='error',
                         help="Pass debug,info or error to set the debug level")
     parser.add_argument('--dryrun', '-n', action="store_true", default=False)
+    parser.add_argument('--showschema', action="store_true", default=False,
+                        help="Just show the JSON schema of the configuration file and exit")
     parser.add_argument('--showconfig', action="store_true", default=False,
                         help="Just show config and exit")
     # parser.add_argument('--nointf', action="store_true", default=False,

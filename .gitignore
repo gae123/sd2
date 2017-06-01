@@ -1,3 +1,4 @@
 *.pyc
 out/
 out/**
+src/lib/sd2/sd2_config_schema.py

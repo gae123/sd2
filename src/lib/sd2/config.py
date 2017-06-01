@@ -16,6 +16,8 @@ __all__=('config_dct')
 
 g_root_dir = os.getenv('SD2_CONFIG_DIR', os.path.join(os.getenv('HOME'), '.sd2'))
 
+from sd2_config_schema import sd2_config_schema
+
 def ensure_base(hosts):
     hosts_by_base = {}
     for ii, host in enumerate(hosts):
@@ -128,10 +130,10 @@ def has_timestamp_changed(config_dct):
 
 
 def validate(config):
-    schema_path = os.path.join(os.path.dirname(__file__), 'config_schema.json')
-    with open(schema_path, 'r') as ff:
-        schemajson = ff.read()
-    schema = json.loads(schemajson)
+    #schema_path = os.path.join(os.path.dirname(__file__), 'config_schema.json')
+    #with open(schema_path, 'r') as ff:
+    #    schemajson = ff.read()
+    schema = json.loads(sd2_config_schema)
     validator = jsonschema.Draft4Validator(schema)
     jsonschema.validate(config, schema)
     if not validator.is_valid(config):
@@ -139,7 +141,6 @@ def validate(config):
         for error in validator.iter_errors(config):
             sys.stderr.write(error.message + '\n')
             sys.exit(1)
-    
     
 
 def read_config():

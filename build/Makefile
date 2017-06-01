@@ -19,7 +19,7 @@ DOCKER_CHECKED := $(patsubst %,$(OUT)/checked/%.checked,$(DOCKER_SOURCES))
 SOURCES_CHECKED := $(PYTHON_CHECKED) $(JSON_CHECKED) $(BASH_CHECKED) $(DOCKER_CHECKED)
 
 
-all: $(SOURCES_CHECKED) $(OUT)/.lint build FORCE
+all: $(TOP)/src/lib/sd2/sd2_config_schema.py $(SOURCES_CHECKED) $(OUT)/.lint build FORCE
 
 build:
 	( rm -rf $(OUT)/install && \
@@ -38,7 +38,12 @@ $(SOURCES_CHECKED): $(OUT)/checked/%.checked: %
 	mkdir -p $(@D)
 	touch $@
 
+$(TOP)/src/lib/sd2/sd2_config_schema.py: $(TOP)/src/lib/sd2/sd2_config_schema.json
+	echo "sd2_config_schema = '''" > $@
+	cat $< >> $@
+	echo "'''" >> $@
+
 clean:
-	rm -rf $(OUT)
+	rm -rf $(OUT) $(TOP)/src/lib/sd2/sd2_config_schema.py
 
 FORCE:

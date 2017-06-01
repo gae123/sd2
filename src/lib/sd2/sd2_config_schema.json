@@ -36,7 +36,7 @@
       "properties": {
         "name": {"type": "string"},
         "base": {
-          "title": "An optional unig per host number that is used for the IP address",
+          "description": "An optional unique per host number that is used for the IP address",
           "type": "integer"
         },
         "abstract": {"type": "boolean"},
@@ -106,10 +106,14 @@
         "abstract": {"type": "boolean"},
         "extends": {"type": "string"},
         "source_root": {
-          "title": "The root of the workspace, required for non abstract",
+          "description": "The root of the source directory, required for non abstract workspaces",
           "type": "string"
         },
-        "dest_root": {"type": "string"},
+        "dest_root": {
+            "description":
+            "The destination directory. Optional, if missing it will be the same the source_root",
+            "type": "string"
+        },
         "delete": {"type": "boolean"},
         "paths": {
           "type": "array",
