@@ -7,6 +7,7 @@ SD2OS := $(shell uname)
 OUT := $(TOP)/out/$(SD2OS)
 
 export PYTHONPATH := $(PYTHONPATH):$(TOP)/src/lib
+export PATH := $(PATH):$(HOME)/.local/bin
 
 PYTHON_SOURCES := $(shell find $(TOP) -name '*.py')
 PYTHON_CHECKED := $(patsubst %.py,$(OUT)/checked/%.py.checked,$(PYTHON_SOURCES))
@@ -22,7 +23,7 @@ SOURCES_CHECKED := $(PYTHON_CHECKED) $(JSON_CHECKED) $(BASH_CHECKED) $(DOCKER_CH
 all: $(TOP)/src/lib/sd2/sd2_config_schema.py $(SOURCES_CHECKED) $(OUT)/.lint build FORCE
 
 build:
-	( rm -rf $(OUT)/install && \
+	(rm -rf $(OUT)/install && \
 	 mkdir -p $(OUT)/install && \
 	 cd $(OUT)/install && \
 	 pyinstaller -F $(TOP)/src/bin/sd2 && \
