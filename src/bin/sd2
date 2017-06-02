@@ -5,9 +5,11 @@
 
 import argparse
 import logging
+import os
 import sys
 import time
 import sd2
+import json
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -28,7 +30,8 @@ def init():
         sys.exit(0)
     config_dct = sd2.read_config()
     if g_args.showconfig:
-        print config_dct
+        ss = json.dumps(config_dct, indent=4)
+        print ss
         sys.exit(0)
     sd2.myhosts.init(config_dct)
     sd2.gen_all.gen_all()
@@ -101,10 +104,15 @@ def add_argument_parsing(subparsers):
                             default='')
     parser_run.set_defaults(func=daemon)
     
+    
 
 def parse_arguments():
     global g_args
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="The tool will parse the configuration file in {} and runs as a daemon".format(
+            os.getenv('SD2_CONFIG_DIR', os.path.join(os.getenv('HOME'), '.sd2'))
+        )
+    )
     parser.add_argument('--version', '-v', action="store_true", default=False)
     parser.add_argument('--level', '-l', default='error',
                         help="Pass debug,info or error to set the debug level")
@@ -121,6 +129,15 @@ def parse_arguments():
     sd2.gen_all.add_argument_parsing(subparsers)
     sd2.sd2cont.add_argument_parsing(subparsers)
     add_argument_parsing(subparsers)
+    
+    # Add 'run' as the default argument if it is missing. This is hacky but
+    # the best I can think of right now.
+    found = False
+    for arg in sys.argv:
+        if arg in ['cont', 'init', 'run']:
+            found = True
+    if not found:
+        sys.argv.append('run')
     
     g_args = parser.parse_args(sys.argv[1:])
 
