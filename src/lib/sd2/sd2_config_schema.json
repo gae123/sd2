@@ -31,7 +31,7 @@
 
     "host": {
       "type": "object",
-      "required": ["name", "IdentityFile"],
+      "required": ["name", "base", "IdentityFile"],
       "additionalProperties": false,
       "properties": {
         "name": {"type": "string"},

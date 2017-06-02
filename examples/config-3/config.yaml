@@ -11,6 +11,7 @@ images:
 
 hosts:
   - name: paros
+    base: 1     # Used in the IP address of the containers, unique for each host
     IdentityFile: ~${USER}/.ssh/id_rsa-2015
 
     containers:
