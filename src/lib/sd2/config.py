@@ -23,7 +23,8 @@ def ensure_base(hosts):
     for ii, host in enumerate(hosts):
         if host.get('base') is None:
             sys.stderr.write(
-                "ERROR: base address for {} was not found in {}. Each host needs a base address in the 1-200 range.\n".format(
+                ("ERROR: base address for {} was not found in {}." +
+                 "Each host needs a base address in the 1-200 range.\n").format(
                     host['name'], g_root_dir))
             sys.exit(1)
         base = host.get('base', ii)
