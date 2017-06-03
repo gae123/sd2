@@ -146,6 +146,16 @@ def validate(config):
             sys.exit(1)
     
 
+def _merge_into(config_dct, dct):
+    for key,val in dct.iteritems():
+        if isinstance(val, list):
+            if not config_dct.get(key):
+                config_dct[key] = []
+            config_dct[key].extend(val)
+        else:
+            config_dct[key] = val
+
+
 def read_config():
     global g_root_dir, initial_timestamp
 
@@ -161,25 +171,30 @@ def read_config():
     else:
         ctx = os.environ
 
-    if os.path.exists(os.path.join(g_root_dir, 'config.yaml')):
-        with open(os.path.join(g_root_dir, 'config.yaml'), 'r') as fd:
+    config_dct = {}
+    for name in os.listdir(g_root_dir):
+        if not name.endswith('config.yaml'):
+            continue
+        config_file_path = os.path.join(g_root_dir, name)
+        with open(config_file_path, 'r') as fd:
             first_line = fd.readline()
         first_line = first_line.strip()
         if first_line == '#!jinja2':
             template_env = jinja2.Environment(
                 loader=jinja2.FileSystemLoader(g_root_dir))
-            templ = template_env.get_template('config.yaml')
+            templ = template_env.get_template(name)
             output = templ.render(ctx) # pylint: disable-msg=E1101
         else:
-            with open(os.path.join(g_root_dir, 'config.yaml')) as fd:
+            with open(os.path.join(g_root_dir, name)) as fd:
                 output = fd.read()
-    else:
-        output = ''
-    try:
-        config_dct = yaml.load(output)
-    except yaml.parser.ParserError as ex:
-        sys.stderr.write('{}\n'.format(ex))
-        sys.exit(1)
+        try:
+            dct = yaml.load(output)
+        except yaml.parser.ParserError as ex:
+            sys.stderr.write('{}: {}\n'.format(config_file_path, ex))
+            sys.exit(1)
+        
+        _merge_into(config_dct, dct)
+    
     process_inheritance(config_dct, ['hosts', 'workspaces'])
     process_expansions(config_dct)
     validate(config_dct)

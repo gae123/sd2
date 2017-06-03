@@ -170,9 +170,14 @@ In the workspaces and hosts section you can create abstract sections that do
 not describe a workspace or host but provide some key/values pairs that will 
 be inherited later.
 
+**Multiple configuration files**
+If the tool finds more that one files in ~/.sd2 that end with `config.yaml`
+it will read and parse all the files and merge them together. This is a great
+way to separate the configuration of unrelated projects.
+
 ## What is not covered by sd<sup>2</sup>
-1. Bring your own editor/IDE. We are agnostic how you edit your source code.
-1. Bring your own container images. We do not provide tools to generate
+1. Bring your own editor/IDE. sd<sup>2</sup> is agnostic on how you edit your source code.
+1. Bring your own container images. sd<sup>2</sup> does not provide tools to generate
  docker images, we expect that are already available and published in 
  a local or remote repository.
 1. Although this might change in the future, you are currently responsible to
@@ -181,15 +186,15 @@ be inherited later.
  
  
 ## Troubleshooting
-1. Start the commaind as following `sd2 -l debug run` to see what it is doing
-1. Start the command as `sd2 --showconfig run`. It will show the config file
+1. Start the commaind as following `sd2 -l debug` to see what it is doing
+1. Start the command as `sd2 --showconfig`. It will show the config file
 as it is after substitutions and will exit.
-1. Start the command as `sd2 --showschema run`. It will show the json schema file.
+1. Start the command as `sd2 --showschema`. It will show the json schema file.
 1. Try to ssh to the DHs. You should be able to ssh to any of them from a 
 terminal in your EH.
-1. You can see the containers running on a DH by runnign `sudo ssh DH sudo docker ps`
+1. You can see the containers running on a DH by runnign `sudo ssh <<DH>> sudo docker ps`
 1. You can delete all the containers runnin on a DH by running 
-`sudo ssh DH 'sudo docker rm -f $(docker ps -qa)'`
+`sudo ssh <<DH>> 'sudo docker rm -f $(docker ps -qa)'`
  
 ## FAQ
 1. When I run docker directly on the MacOS why can't I just mount the MacOS 
@@ -213,6 +218,7 @@ multiple containers to access the same repository.
 1. What IP addresses do the containers use?  
     The system automatically assigns addresses in the 172.30.X.X private address
     range. It uses the 3rd octet for the DH and the 4 octet for the containers.
+ 
  
 ## Future Directions
 
