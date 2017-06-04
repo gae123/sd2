@@ -101,6 +101,21 @@
           },
           "uniqueItems": true
         },
+        "env": {
+          "description": "Environment variables array to be passed to the container",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "value"],
+            "uniqueItems": true,
+            "additionalProperties": false,
+            "properties": {
+              "name": {"type": "string"},
+              "value": {"type": "string"}
+            }
+          },
+          "uniqueItems": true
+        },
         "extra_flags": {"type": "string"},
         "command": {"type": "string"}
       }

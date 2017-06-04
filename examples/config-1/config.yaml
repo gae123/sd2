@@ -5,6 +5,9 @@ images:
     extra_flags: --entrypoint /home/${USER}/projects/0.sd2/examples/entrypoint.sh
     ports:
       - 80:80
+    env:
+      - name: FOO
+        value: bar
 
 
 hosts:

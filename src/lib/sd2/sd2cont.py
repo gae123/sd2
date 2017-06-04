@@ -37,11 +37,6 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
         '--privileged',
         "--name={}".format(container_host_name),
         "--hostname={}".format(container_host_name),
-        "--env", "USER=$USER",
-        "--env", "USER_ID={}".format(
-            util.remote_subprocess_check_output(host_name, ['id', '-u']).rstrip()),
-        "--env", "GROUP_ID={}".format(
-            util.remote_subprocess_check_output(host_name, ['id', '-g']).rstrip()),
         "--volume", "$HOME:/home/$USER"
     ])
     if util.remote_path_exists(host_name, '/etc/localtime'):
@@ -54,6 +49,19 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
     for ports in ns_host_ports.split():
         cmd.append('--publish')
         cmd.append(ports)
+        
+    env = {
+        "SD2IP": ns_host_ip,
+        "USER": "$USER",
+        "USER_ID": util.remote_subprocess_check_output(host_name, ['id', '-u']).rstrip(),
+        "GROUP_ID": util.remote_subprocess_check_output(host_name, ['id', '-g']).rstrip(),
+    }
+    env.update()
+    for var in myhosts.get_container_env(container_host_name):
+        env[var['name']] = var['value']
+    for kk,vv in env.iteritems():
+        cmd.append("--env")
+        cmd.append("{}={}".format(kk,vv))
 
     cmd.extend(['--workdir', "/home/$USER"])
     cmd.append('--tty')

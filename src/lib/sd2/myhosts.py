@@ -90,6 +90,12 @@ def get_container_ports(containerName):
     cont = containersdict[containerName]
     return cont['image'].get('ports', [])
 
+def get_container_env(containerName):
+    if not initialized:
+        init()
+    cont = containersdict[containerName]
+    return cont['image'].get('env', [])
+
 def get_container_ip(containerName):
     if not initialized:
         init()
