@@ -120,7 +120,8 @@ def process_inheritance(config_dct, keys):
 def get_max_timestamp():
     rr = 0
     for name in os.listdir(g_root_dir):
-        if not name in ['config.yaml', 'config']:
+        if (not name.endswith('config.yaml') and
+            not name.endswith('config')):
             continue
         path = os.path.join(g_root_dir, name)
         rr = max(rr, os.path.getmtime(path))
