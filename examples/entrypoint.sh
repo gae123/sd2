@@ -16,7 +16,9 @@ function set_group_permissions() {
     # Setting Group Permissions
     DOCKER_GROUP_CURRENT_ID=`id -g $DOCKER_GROUP`
 
-    if [ $DOCKER_GROUP_CURRENT_ID -eq $HOST_GROUP_ID ]; then
+    echo SGP: DG:$DOCKER_GROUP   HGID:$HOST_GROUP_ID DGCID:$DOCKER_GROUP_CURRENT_ID
+
+    if [ x"$DOCKER_GROUP_CURRENT_ID" = x"$HOST_GROUP_ID" ]; then
       echo "Group $DOCKER_GROUP is already mapped to $DOCKER_GROUP_CURRENT_ID. Nice!"
     else
       echo "Check if group with ID $HOST_GROUP_ID already exists"
@@ -44,7 +46,9 @@ function set_user_permissions() {
     # Setting User Permissions
     DOCKER_USER_CURRENT_ID=`id -u $DOCKER_USER`
 
-    if [ $DOCKER_USER_CURRENT_ID -eq $HOST_USER_ID ]; then
+    echo SUP: DU:$DOCKER_USER  HUID:$HOST_USER_ID DUCID:$DOCKER_USER_CURRENT_ID
+
+    if [ x"$DOCKER_USER_CURRENT_ID" = x"$HOST_USER_ID" ]; then
       echo "User $DOCKER_USER is already mapped to $DOCKER_USER_CURRENT_ID. Nice!"
 
     else
@@ -77,4 +81,5 @@ if [ x"$DOCKER_USER_ID" = x"" ]; then
 fi
 service ssh start
 service nginx start
+echo $FOO
 sleep infinity
