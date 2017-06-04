@@ -100,4 +100,4 @@ def remote_path_exists(remote_host, path):
     else:
         cmd = "ssh {} '[ -e {} ] && echo yes'".format(remote_host, path)
         output = subprocess.check_output(cmd, shell=True)
-        return output == 'yes'
+        return output.rstrip() == 'yes'
