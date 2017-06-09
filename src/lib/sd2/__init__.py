@@ -8,4 +8,4 @@ from .myhosts import get_hosts, get_hosts_dict
 from . import gen_all, sd2cont
 
 
-__version__='0.9.41'
+__version__='0.9.42'
