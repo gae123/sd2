@@ -22,7 +22,7 @@ deploy:
     secure: f1tvHWXRRaZJmJkqdPiBOcucBi2+sDpb3V3KCWhLeIHF/az0xdlayZPPNuxogwH7bpjor1ky8x5Op9nftJVFkmuxUrbrBXoTXSD8wpah8UDaATc4RyjidHlV2IYJc6g52UVzLqb9/8k0q15WTFdM7qreX8gFAN3jzwxdwn0Fx6+spCLrG7MH0c8dx3sB6LLsoc5lNn7DoVqLgzb2SsVrKBQKtp3zHkgVwmcxzCBWVmqk1g0k65oaJbs6HbzKbQkiDHHEOuLclY/t6Vb3xWlmVzIvrCd63gocwAMXJyHjANXVsP1QXg2TuYrWoGKKzS673ZedFi6SaAY8iYI040pOgT6ZreXSUbxQEHLEvVfcCioSLDxCrZmyZN6eNcSVQOLuKTs3KZ84+NG8Sksbcb9kD6uWRRtlcME28gu9F+Ipxbm6AxeZeQAwL65DkD1fRcGycWitfMY0v0xe0thc2YLs8gZMRZh+M7N742oz1CoGRgOfOuXOFX/7HhFv27OA5kIjW/CFKOJFv3kNn1SgAbhSEnYKSteO8Ma8ne+/Zaufn7E6QBPxW+FWADjvBTbXj1gce1rVZKveiFbiJFXBYL5nJwfD9IGdJwzkXlZG1qlauMacSIiT5wnLFuv01qCrQi6JP2kJWwIFcgEzp/W1EZ/A99Mr308e3MdxP6RCtmVtzqM=
   file:
     - $TRAVIS_BUILD_DIR/out/$SD2OS/install/dist/sd2-$SD2OS
-    - $$TRAVIS_BUILD_DIR/build/how-to-install.md
+    - $TRAVIS_BUILD_DIR/build/how-to-install.md
   skip_cleanup: true
   on:
     tags: true
