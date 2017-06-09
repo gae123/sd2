@@ -1,13 +1,13 @@
 language: python
 matrix:
   include:
-  - os: linux
-    dist: trusty
-    sudo: required
-    language: generic
-    env:
-      - TOXENV=2.7
-      - SD2OS=Linux
+#  - os: linux
+#    dist: trusty
+#    sudo: required
+#    language: generic
+#    env:
+#      - TOXENV=2.7
+#      - SD2OS=Linux
   - os: osx
     language: generic
     env:
