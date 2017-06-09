@@ -38,7 +38,7 @@ class DockerConnections(Connections):
                 }
         
     def get_cmd(self, host):
-        rr = ["sd2"]
+        rr = [sys.argv[0]]
         rr.extend([
             "--level",
             g_args.level
