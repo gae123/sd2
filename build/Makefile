@@ -40,9 +40,12 @@ $(SOURCES_CHECKED): $(OUT)/checked/%.checked: %
 	touch $@
 
 $(TOP)/src/lib/sd2/sd2_config_schema.py: $(TOP)/src/lib/sd2/sd2_config_schema.json
-	echo "sd2_config_schema = '''" > $@
+	rm -f $@
+	echo '#Geneareted file. Do not modify' >> $@
+	echo "sd2_config_schema = '''" >> $@
 	cat $< >> $@
 	echo "'''" >> $@
+	chmod -w $@
 
 clean:
 	rm -rf $(OUT) $(TOP)/src/lib/sd2/sd2_config_schema.py

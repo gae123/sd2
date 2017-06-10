@@ -27,9 +27,10 @@ class SSHConnections(Connections):
         g_workspaces = workspaces
         self.hosts_to_ssh = {}
         for host in myhosts.hosts:
-            if util.is_localhost(host['name']):
-                continue
-            if myhosts.is_disabled(host['name']):
+            if (util.is_localhost(host['name']) or
+                myhosts.is_disabled(host['name']) or
+                not myhosts.get_container_names(host['name'])):
+                logging.debug('SSH:SKIP %s', host['name'])
                 continue
             if not g_args.hosts or host['name'] in g_args.hosts:
                 host['needsync'] = 1

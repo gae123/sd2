@@ -23,6 +23,8 @@ def gen_interfaces(hostname=None):
         sys.exit(1)
     wholecmd = ''
     for host in get_hosts():
+        if not host.get('containers'):
+            continue
         if hostname and hostname != host['name']:
             continue
         wholecmd += cmd.format(host['local-ip']) + ';'

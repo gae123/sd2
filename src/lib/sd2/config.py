@@ -21,14 +21,14 @@ from sd2_config_schema import sd2_config_schema
 def ensure_base(hosts):
     hosts_by_base = {}
     for ii, host in enumerate(hosts):
-        if host.get('base') is None:
-            sys.stderr.write(
-                ("ERROR: base address for {} was not found in {}." +
-                 "Each host needs a base address in the 1-200 range.\n").format(
-                    host['name'], g_root_dir))
-            sys.exit(1)
-        base = host.get('base', ii)
-        if hosts_by_base.get(base) is not None:
+        #if host.get('base') is None:
+        #    sys.stderr.write(
+        #        ("ERROR: base address for {} was not found in {}." +
+        #         "Each host needs a base address in the 1-200 range.\n").format(
+        #            host['name'], g_root_dir))
+        #    sys.exit(1)
+        base = host.get('base')
+        if base is not None and hosts_by_base.get(base) is not None:
             sys.stderr.write(
                 "ERROR: {} and {} have the same base {}.\n".format(
                     host['name'], hosts_by_base[base][0], base))

@@ -2,7 +2,7 @@
 #############################################################################
 # Copyright (c) 2017 SiteWare Corp. All right reserved
 #############################################################################
-
+import sys
  
 initialized = False
 config_dct = {}
@@ -27,20 +27,26 @@ def init(a_config_dct=None):
     
     
     for ii,host in enumerate(hosts):
-        base = host.get('base', ii)
-        host['local-ip'] = "172.30.{}.100".format(base)
-        containers = []
+        base = host.get('base')
         host_name = host['name']
-        for cont, imagename in enumerate(host.get('containers', [])):
+        config_containers = host.get('containers', [])
+        if base is None and config_containers:
+            sys.stderr.write(
+                "Config Error: Host {} has containers but not base\n".format(host_name))
+            sys.exit(1)
+        if base is not None:
+            host['local-ip'] = "172.30.{}.100".format(base)
+        containers = []
+        for ii, imagename in enumerate(config_containers):
             image_name = imagename if isinstance(imagename,
                                                   basestring) else \
                         imagename['imagename']
             cont = {
-                'ip': "172.30.{}.{}".format(base, 101 + cont),
+                'ip': "172.30.{}.{}".format(base, 101 + ii),
                 'image': imagesdict[image_name],
                 'name': "{}-{}".format(host_name, (
-                    cont if isinstance(imagename, basestring) else imagename.get(
-                    'name', cont))),
+                    ii if isinstance(imagename, basestring) else imagename.get(
+                    'name', ii))),
                 'upgrade': False if isinstance(imagename, basestring) else imagename.get('upgrade')
             }
             containers.append(cont)

@@ -31,7 +31,7 @@
 
     "host": {
       "type": "object",
-      "required": ["name", "base", "IdentityFile"],
+      "required": ["name"],
       "additionalProperties": false,
       "properties": {
         "name": {"type": "string"},
@@ -48,6 +48,9 @@
         "Port": {"type": "integer"},
         "IdentityFile":  {"type": "string"},
         "StrictHostKeyChecking": {"type": "string"},
+        "ProxyCommand": {"type": "string"},
+        "AddKeysToAgent": {"type": "string"},
+        "UseKeychain": {"type": "string"},
         "UserKnownHostsFile": {"type": "string"},
         "ServerAliveInterval": {"type": "integer"},
         "LocalForward": {

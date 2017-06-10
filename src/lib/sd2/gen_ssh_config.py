@@ -19,7 +19,6 @@ host {cont[name]}
     Port {sshport}
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
-    IdentityFile {host[IdentityFile]}
     ServerAliveInterval 60
     ConnectTimeout 5
 '''
@@ -32,7 +31,10 @@ ssh_option_names = [
     'ServerAliveInterval',
     'StrictHostKeyChecking',
     'UserKnownHostsFile',
-    'ConnectTimeout'
+    'ProxyCommand',
+    'ConnectTimeout',
+    'UseKeychain',
+    'AddKeysToAgent'
 ]
 
 def generate_for_host(host):
@@ -64,25 +66,26 @@ def generate_for_host(host):
                 rr += '    {key} {value}\n'.format(key=key, value=vv)
         rr += '\n'
     
-        rr += 'host {}-ports\n'.format(host['name'])
-        if not 'HostName' in host.keys():
-            host['HostName'] = host['name']
-        for key, val in host.iteritems():
-            if not key in ssh_option_names + ['LocalForward']:
-                continue
-            if not isinstance(val, (list, tuple)):
-                val = [val]
-            for vv in val:
-                rr += '    {key} {value}\n'.format(key=key, value=vv)
-                # rr += '    LocalForward {}-local:2375 localhost:2375\n'.format(host['name'])
-        for cont in host.get('containers', []):
-            ports = cont['image'].get('ports', [])
-            for port in ports + ["{}:22".format(sshport)]:
-                (p1, p2) = port.split(':')
-                rr += (
-                    "    LocalForward  {0}:{1} {2}:{1}\n".format(
-                        cont['name'], p1, cont['ip']))
-        rr += '\n'
+        if host.get('containers'):
+            rr += 'host {}-ports\n'.format(host['name'])
+            if not 'HostName' in host.keys():
+                host['HostName'] = host['name']
+            for key, val in host.iteritems():
+                if not key in ssh_option_names + ['LocalForward']:
+                    continue
+                if not isinstance(val, (list, tuple)):
+                    val = [val]
+                for vv in val:
+                    rr += '    {key} {value}\n'.format(key=key, value=vv)
+                    # rr += '    LocalForward {}-local:2375 localhost:2375\n'.format(host['name'])
+            for cont in host.get('containers', []):
+                ports = cont['image'].get('ports', [])
+                for port in ports + ["{}:22".format(sshport)]:
+                    (p1, p2) = port.split(':')
+                    rr += (
+                        "    LocalForward  {0}:{1} {2}:{1}\n".format(
+                            cont['name'], p1, cont['ip']))
+            rr += '\n'
 
     for cont in host.get('containers', []):
         rr += container_entry_template.format(**locals())
