@@ -55,6 +55,7 @@
         "ForwardAgent": {"type": "string"},
         "ServerAliveInterval": {"type": "integer"},
         "PKCS11Provider": {"type": "string"},
+        "SmartcardDevice": {"type": "string"},
         "LocalForward": {
           "type": "array",
           "items": {
