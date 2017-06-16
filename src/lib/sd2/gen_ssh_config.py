@@ -91,6 +91,9 @@ def generate_for_host(host):
 
     for cont in host.get('containers', []):
         rr += container_entry_template.format(**locals())
+        for key, val in host.iteritems():
+            if key in ['IdentityFile','ProxyCommad','PKCS11Provider']:
+                rr += '    {} {}\n'.format(key, val)
     return rr
 
 
