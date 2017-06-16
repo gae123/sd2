@@ -33,6 +33,10 @@ def init():
         ss = json.dumps(config_dct, indent=4)
         print ss
         sys.exit(0)
+    if g_args.showbase:
+        base = sd2.myhosts.get_first_unused_base(config_dct)
+        print base
+        sys.exit(0)
     sd2.myhosts.init(config_dct)
     sd2.gen_all.gen_all()
     
@@ -121,6 +125,8 @@ def parse_arguments():
                         help="Just show the JSON schema of the configuration file and exit")
     parser.add_argument('--showconfig', action="store_true", default=False,
                         help="Just show config and exit")
+    parser.add_argument('--showbase', action="store_true", default=False,
+                        help="Just show an unused base number and exit")
     # parser.add_argument('--nointf', action="store_true", default=False,
     #                     help="Do not generate interfaces on hosts")
     

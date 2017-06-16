@@ -138,5 +138,20 @@ def get_hosts_dict(enabled=True):
         init()
     return {x['name']: x for x in get_hosts(enabled)}
 
+def get_first_unused_base(dct):
+    rr = []
+    for host in dct.get('hosts', []):
+        #print host['name']
+        if host.get('base'):
+            rr.append(host.get('base'))
+    rr.sort()
+    #print "Used bases: " + str(rr)
+    for ii, num in enumerate(rr):
+        assert num >= ii
+        if num > ii:
+            return ii
+    return -1
+        
+
 
     
