@@ -12,6 +12,7 @@ import os
 from .util import kill_subprocess_process
 from .workspace import Workspace
 from .connections import Connections
+from . import myhosts
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -62,6 +63,10 @@ class RsyncConnections(Connections):
     def handle_host(self, wsi, host):
         if g_args.hosts and not host['name'] in g_args.hosts:
             return
+        if not myhosts.is_enabled(host['name']):
+            #logging.debug("RSYNC:SKIP {}".format(host['name']))
+            return
+        
         proc = host.get('rsyncproc')
         if proc:
             proc.poll()

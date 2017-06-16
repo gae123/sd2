@@ -192,6 +192,10 @@ as it is after substitutions and will exit.
 1. Start the command as `sd2 --showschema`. It will show the json schema file.
 1. Try to ssh to the DHs. You should be able to ssh to any of them from a 
 terminal in your EH.
+1. You can access a container in a DH with the following command:  
+`ssh -t <<DH>> sudo docker exec -it <<CONTAINER NAME>>  su - $USER`  
+Of course in the local case you do not need the ssh part. This is the preferred
+way to get shell access to the container.
 1. You can see the containers running on a DH by runnign `sudo ssh <<DH>> sudo docker ps`
 1. You can delete all the containers runnin on a DH by running 
 `sudo ssh <<DH>> 'sudo docker rm -f $(docker ps -qa)'`

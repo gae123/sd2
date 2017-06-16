@@ -47,7 +47,8 @@ def init(a_config_dct=None):
                 'name': "{}-{}".format(host_name, (
                     ii if isinstance(imagename, basestring) else imagename.get(
                     'name', ii))),
-                'upgrade': False if isinstance(imagename, basestring) else imagename.get('upgrade')
+                'upgrade': False if isinstance(imagename, basestring) else imagename.get('upgrade'),
+                'host': host # The host where the container lives
             }
             containers.append(cont)
             containersdict[cont['name']] = cont
@@ -126,6 +127,10 @@ def is_enabled(hostname):
     if not initialized:
         init()
     host = hostsdict.get(hostname)
+    if not host:
+        cont = containersdict.get(hostname)
+        if cont:
+            host = cont['host']
     return host and not host.get('disabled')
 
 def get_hosts(enabled=True):
