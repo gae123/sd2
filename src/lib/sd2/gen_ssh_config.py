@@ -34,7 +34,9 @@ ssh_option_names = [
     'ProxyCommand',
     'ConnectTimeout',
     'UseKeychain',
-    'AddKeysToAgent'
+    'AddKeysToAgent',
+    'ForwardAgent',
+    "PKCS11Provider"
 ]
 
 def generate_for_host(host):

@@ -52,7 +52,9 @@
         "AddKeysToAgent": {"type": "string"},
         "UseKeychain": {"type": "string"},
         "UserKnownHostsFile": {"type": "string"},
+        "ForwardAgent": {"type": "string"},
         "ServerAliveInterval": {"type": "integer"},
+        "PKCS11Provider": {"type": "string"},
         "LocalForward": {
           "type": "array",
           "items": {
