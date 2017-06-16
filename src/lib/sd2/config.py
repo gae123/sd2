@@ -103,7 +103,7 @@ def process_inheritance(config_dct, keys):
         rr = []
         for dct in dfsnodes:
             isabstract = dct.get('abstract')
-            disabled = dct.get('disabled')
+            #disabled = dct.get('disabled')
             dct = get_processed_dct(dct, hostsdict)
             for key in ['abstract', 'extends']:
                 if dct.get(key) is not None:
@@ -111,7 +111,7 @@ def process_inheritance(config_dct, keys):
             if not isabstract:
                 process_expansions(dct)
             hostsdict[dct['name']] = dct
-            if not disabled and not isabstract:
+            if not isabstract:
                 rr.append(dct)
 
         config_dct[tlkey] = rr
