@@ -41,6 +41,10 @@
         },
         "abstract": {"type": "boolean"},
         "extends": {"type": "string"},
+        "sudo_ssh": {
+            "type": "string",
+            "description": "Uses sudo ssh to connect to the host, useful if you want to forward locally ports like 80 or 443"
+        },
         "User": {
           "type": "string",
           "description": "Used in .ssh/config defaults to the $USER who runs sd2"

@@ -34,11 +34,16 @@ class SSHConnections(Connections):
                 continue
             if not g_args.hosts or host['name'] in g_args.hosts:
                 host['needsync'] = 1
+                
+                if host.get('sudo_ssh'):
+                    sshcmd = "sudo ssh -F {}/.ssh/config".format(os.getenv('HOME'))
+                else:
+                    sshcmd = "ssh"
+                    
                 self.hosts_to_ssh[host['name']] = {
                     'name': host['name'],
                     'sshproc': None,
-                    'sshcmd': 'sudo ssh -F ~/.ssh/config -T ' + host[
-                        'name'] + '-ports'
+                    'sshcmd': sshcmd + ' -T ' + host['name'] + '-ports'
                 }
 
     def poll(self):
