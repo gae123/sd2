@@ -11,6 +11,7 @@ export PATH := $(PATH):$(HOME)/.local/bin
 
 PYTHON_SOURCES := $(shell find $(TOP) -name '*.py')
 PYTHON_CHECKED := $(patsubst %.py,$(OUT)/checked/%.py.checked,$(PYTHON_SOURCES))
+PYTHON_CHECKED := $(filter-out %sd2_config_schema.py.checked,$(PYTHON_CHECKED))
 JSON_SOURCES := $(shell find $(TOP) -name '*.json')
 JSON_CHECKED := $(patsubst %.json,$(OUT)/checked/%.json.checked,$(JSON_SOURCES))
 BASH_SOURCES := $(shell find $(TOP) -name '*.sh')
