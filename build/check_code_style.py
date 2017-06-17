@@ -4,7 +4,8 @@
 #############################################################################
 import sys
 
-with open(sys.argv[1]) as ff:
+filepath = sys.argv[1]
+with open(filepath) as ff:
     lines = ff.read()
     
 lines = lines.split('\n')
@@ -17,6 +18,9 @@ for ii,line in enumerate(lines):
         if ch.isspace():
             continue
         break
+    # Sigh there is no way to make a string multiline in json
+    if filepath.endswith('.json'):
+        continue
     if len(line) > 100:
         sys.stderr.write(
             "{}:{} is too long\n".format(sys.argv[1], ii+1))
