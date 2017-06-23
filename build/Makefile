@@ -1,7 +1,7 @@
 #############################################################################
 # Copyright (c) 2017 SiteWare Corp. All right reserved
 #############################################################################
-SD2_VERSION := 0.9.51
+SD2_VERSION := 0.9.52
 
 TOP := $(realpath ..)
 SD2OS := $(shell uname)
@@ -20,6 +20,7 @@ BASH_CHECKED := $(patsubst %.sh,$(OUT)/checked/%.sh.checked,$(BASH_SOURCES))
 DOCKER_SOURCES := $(shell find $(TOP) -name 'Dockerfile')
 DOCKER_CHECKED := $(patsubst %,$(OUT)/checked/%.checked,$(DOCKER_SOURCES))
 SOURCES_CHECKED := $(PYTHON_CHECKED) $(JSON_CHECKED) $(BASH_CHECKED) $(DOCKER_CHECKED)
+
 
 all: $(TOP)/src/lib/sd2/sd2_config_schema.py \
      $(TOP)/src/lib/sd2/version.py \
@@ -59,7 +60,8 @@ $(TOP)/src/lib/sd2/sd2_config_schema.py: $(TOP)/src/lib/sd2/sd2_config_schema.js
 	chmod -w $@
 
 install:
-	git tag -f $(SD2_VERSION)
+	(git tag -d $(SD2_VERSION) && git push origin :refs/tags/$(SD2_VERSION)) || true
+	git tag $(SD2_VERSION)
 	git push --tags
 
 clean:
