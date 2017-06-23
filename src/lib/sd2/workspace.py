@@ -12,7 +12,7 @@ class Workspace(object):
     def get_targets(self):
         hosts = self._node.get('targets', [])
         rr = [x for x in hosts if myhosts.is_enabled(x['name'])]
-        rr.extend([x for x in hosts if myhosts.exists_container(x['name'])])
+        #rr.extend([x for x in hosts if myhosts.exists_container(x['name']) ])
         for host in hosts:
             assert 'name' in host
         return rr
