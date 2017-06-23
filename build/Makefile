@@ -21,7 +21,6 @@ DOCKER_SOURCES := $(shell find $(TOP) -name 'Dockerfile')
 DOCKER_CHECKED := $(patsubst %,$(OUT)/checked/%.checked,$(DOCKER_SOURCES))
 SOURCES_CHECKED := $(PYTHON_CHECKED) $(JSON_CHECKED) $(BASH_CHECKED) $(DOCKER_CHECKED)
 
-
 all: $(TOP)/src/lib/sd2/sd2_config_schema.py \
      $(TOP)/src/lib/sd2/version.py \
      $(SOURCES_CHECKED) \
@@ -60,7 +59,7 @@ $(TOP)/src/lib/sd2/sd2_config_schema.py: $(TOP)/src/lib/sd2/sd2_config_schema.js
 	chmod -w $@
 
 install:
-	git-retag $(SD2_VERSION)
+	git tag -f $(SD2_VERSION)
 	git push --tags
 
 clean:
