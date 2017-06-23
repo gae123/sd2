@@ -1,6 +1,7 @@
 #############################################################################
 # Copyright (c) 2017 SiteWare Corp. All right reserved
 #############################################################################
+SD2_VERSION := 0.9.51
 
 TOP := $(realpath ..)
 SD2OS := $(shell uname)
@@ -21,7 +22,12 @@ DOCKER_CHECKED := $(patsubst %,$(OUT)/checked/%.checked,$(DOCKER_SOURCES))
 SOURCES_CHECKED := $(PYTHON_CHECKED) $(JSON_CHECKED) $(BASH_CHECKED) $(DOCKER_CHECKED)
 
 
-all: $(TOP)/src/lib/sd2/sd2_config_schema.py $(SOURCES_CHECKED) $(OUT)/.lint build FORCE
+all: $(TOP)/src/lib/sd2/sd2_config_schema.py \
+     $(TOP)/src/lib/sd2/version.py \
+     $(SOURCES_CHECKED) \
+     $(OUT)/.lint \
+     build \
+     FORCE
 
 build:
 	(rm -rf $(OUT)/install && \
@@ -40,6 +46,11 @@ $(SOURCES_CHECKED): $(OUT)/checked/%.checked: %
 	mkdir -p $(@D)
 	touch $@
 
+$(TOP)/src/lib/sd2/version.py: $(TOP)/build/Makefile
+	rm -rf $@
+	echo "version='$(SD2_VERSION)'" > $@
+	chmod -w $@
+
 $(TOP)/src/lib/sd2/sd2_config_schema.py: $(TOP)/src/lib/sd2/sd2_config_schema.json
 	rm -f $@
 	echo '#Geneareted file. Do not modify' >> $@
@@ -48,7 +59,12 @@ $(TOP)/src/lib/sd2/sd2_config_schema.py: $(TOP)/src/lib/sd2/sd2_config_schema.js
 	echo "'''" >> $@
 	chmod -w $@
 
+install:
+	git-retag $(SD2_VERSION)
+	git push --tags
+
 clean:
 	rm -rf $(OUT) $(TOP)/src/lib/sd2/sd2_config_schema.py
+	rm -rf $(TOP)/src/lib/sd2/version.py
 
 FORCE:
