@@ -110,37 +110,39 @@ def add_argument_parsing(subparsers):
     
  
 def setup_logging(parser):
-     global g_args
-     g_args = parser.parse_args(sys.argv[1:])
+    import logging.handlers
+    global g_args
+    g_args = parser.parse_args(sys.argv[1:])
     
-     level = {
-         'info': logging.INFO,
-         'debug': logging.DEBUG,
-         'error': logging.ERROR,
-         'warning': logging.WARNING
-     }[g_args.level]
+    level = {
+     'info': logging.INFO,
+     'debug': logging.DEBUG,
+     'error': logging.ERROR,
+     'warning': logging.WARNING
+    }[g_args.level]
     
-     logFormatter = logging.Formatter(
-         '%(asctime)s %(levelname)-8s %(message)s', '%Y-%m-%d %H:%M:%S')
-     rootLogger = logging.getLogger()
-     rootLogger.setLevel(logging.DEBUG)
+    logFormatter = logging.Formatter(
+     '%(asctime)s %(levelname)-8s %(message)s', '%Y-%m-%d %H:%M:%S')
+    rootLogger = logging.getLogger()
+    rootLogger.setLevel(logging.DEBUG)
     
-     # TODO /tmp is probably not the right place for this, at a minimum drive it
-     # from an environment variable
-     #logDir = os.path.join(os.getenv('HOME'), '.sd2')
-     logDir = '/tmp'
-     fileName = 'sd2'
-     os.system("mkdir -p '{}'".format(logDir))
-     fileHandler = logging.FileHandler(
-         "{0}/{1}.log".format(logDir, fileName), mode='w')
-     fileHandler.setFormatter(logFormatter)
-     fileHandler.setLevel(logging.DEBUG)
-     rootLogger.addHandler(fileHandler)
+    # TODO /tmp is probably not the right place for this, at a minimum drive it
+    # from an environment variable
+    #logDir = os.path.join(os.getenv('HOME'), '.sd2')
+    logDir = '/tmp'
+    fileName = 'sd2'
+    os.system("mkdir -p '{}'".format(logDir))
+    fileHandler = logging.handlers.TimedRotatingFileHandler(
+     "{0}/{1}.log".format(logDir, fileName),
+     when='D', backupCount=60)
+    fileHandler.setFormatter(logFormatter)
+    fileHandler.setLevel(logging.DEBUG)
+    rootLogger.addHandler(fileHandler)
     
-     consoleHandler = logging.StreamHandler()
-     consoleHandler.setFormatter(logFormatter)
-     consoleHandler.setLevel(level)
-     rootLogger.addHandler(consoleHandler)
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setFormatter(logFormatter)
+    consoleHandler.setLevel(level)
+    rootLogger.addHandler(consoleHandler)
     
 
 def parse_arguments():
@@ -183,6 +185,8 @@ def parse_arguments():
     if g_args.version:
         print sd2.__version__
         sys.exit(0)
+        
+    logging.info("---------------sd2 %s-------------------", sys.argv)
         
     g_args.func(g_args)
 
