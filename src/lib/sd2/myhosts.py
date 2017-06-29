@@ -31,8 +31,8 @@ def init(a_config_dct=None):
         host_name = host['name']
         config_containers = host.get('containers', [])
         if base is None and config_containers and not host.get('abstract'):
-            sys.stderr.write(
-                "Config Error: Non abstract Host {} has containers but not base\n".format(host_name))
+            msg = "Config Error: Non abstract Host {} has containers but not base\n"
+            sys.stderr.write(msg.format(host_name))
             sys.exit(1)
         if base is not None:
             host['local-ip'] = "172.30.{}.100".format(base)
