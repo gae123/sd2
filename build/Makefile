@@ -59,7 +59,7 @@ $(TOP)/src/lib/sd2/sd2_config_schema.py: $(TOP)/src/lib/sd2/sd2_config_schema.js
 	echo "'''" >> $@
 	chmod -w $@
 
-install:
+install: all
 	(git tag -d $(SD2_VERSION) && git push origin :refs/tags/$(SD2_VERSION)) || true
 	git tag $(SD2_VERSION)
 	git push --tags
