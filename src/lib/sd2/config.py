@@ -67,7 +67,12 @@ def _dfs(lst):
         if not isinstance(extends, (list, tuple)):
             extends = [extends]
         for name in extends:
-            node2 = [x for x in lst if x['name'] == name][0]
+            nodes = [x for x in lst if x['name'] == name]
+            if len(nodes) == 0:
+                sys.stderr.write(
+                    "ERROR: abastract ancestor called {} not found\n".format(name))
+                sys.exit(1)
+            node2 = nodes[0]
             if not node2 in stack and not node2 in visited:
                 stack.append(node2)
         for node in reversed(stack):
