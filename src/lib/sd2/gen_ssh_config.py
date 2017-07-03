@@ -22,22 +22,27 @@ host {cont[name]}
     ServerAliveInterval 60
     ConnectTimeout 5
 '''
+container_ssh_option_names = [
+    'IdentityFile',
+    'ProxyCommand',
+    "PKCS11Provider",
+    'SmartcardDevice',
+    "IdentitiesOnly"
+]
 
 ssh_option_names = [
     'HostName',
     'Port',
     'User',
-    'IdentityFile',
     'ServerAliveInterval',
     'StrictHostKeyChecking',
     'UserKnownHostsFile',
-    'ProxyCommand',
     'ConnectTimeout',
     'UseKeychain',
     'AddKeysToAgent',
     'ForwardAgent',
-    "PKCS11Provider"
 ]
+ssh_option_names.extend(container_ssh_option_names)
 
 def generate_for_host(host):
     from . import util
@@ -92,7 +97,7 @@ def generate_for_host(host):
     for cont in host.get('containers', []):
         rr += container_entry_template.format(**locals())
         for key, val in host.iteritems():
-            if key in ['IdentityFile','ProxyCommad','PKCS11Provider', 'SmartcardDevice']:
+            if key in container_ssh_option_names:
                 rr += '    {} {}\n'.format(key, val)
     return rr
 
