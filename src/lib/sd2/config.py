@@ -18,6 +18,10 @@ g_root_dir = os.getenv('SD2_CONFIG_DIR', os.path.join(os.getenv('HOME'), '.sd2')
 
 from sd2_config_schema import sd2_config_schema
 
+def exit_with_error(msg):
+    sys.stderr.write(msg)
+    sys.exit(1)
+
 def ensure_base(hosts):
     hosts_by_base = {}
     for ii, host in enumerate(hosts):
@@ -54,6 +58,43 @@ def process_expansions(dct):
     for key,val in dct.iteritems():
         nval = expand(val, dct)
         dct[key] = nval
+
+
+def process_containers(dct):
+    """Look for containers: at top level and add them to the appropriate host"""
+    if not dct.get('containers'):
+        return
+
+    dct_cnt = dct['containers']
+    for cont in dct_cnt:
+        if not cont.get('name'):
+            exit_with_error("ERROR: Each container must have a name.\n")
+        if not cont.get('hostname'):
+            exit_with_error("ERROR: Container '{}' does not have a host.\n".format(cont['name']))
+
+        if cont.get('enabled') == False or cont.get('disabled') == True:
+            continue
+
+        cont_host = None
+        for host in dct.get('hosts', []):
+            if host['name'] == cont['hostname']:
+                cont_host = host
+                break
+        if not cont_host:
+            exit_with_error(
+                "ERROR: Container '{}'' expects non existing host '{}'.\n". format(
+                cont['name'], cont['hostname']))
+
+        if not cont_host.get('containers'):
+            cont_host['containers'] = []
+
+        for host_cnt in cont_host['containers']:
+            if host_cnt['name'] == cont['name']:
+                exit_with_error(
+                    "ERROR: host '{}' already has a container with name '{}'.\n". format(
+                        host['name'], cont['name']))
+
+        cont_host['containers'].append(cont)            
 
 
 def _dfs(lst):
@@ -202,6 +243,7 @@ def read_config():
         _merge_into(config_dct, dct)
     
     process_inheritance(config_dct, ['hosts', 'workspaces'])
+    process_containers(config_dct)
     process_expansions(config_dct)
     validate(config_dct)
     ensure_base(config_dct['hosts'])

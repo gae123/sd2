@@ -23,6 +23,12 @@
         "items": {
           "$ref":  "#/definitions/workspace"
         }
+    },
+    "containers": {
+        "type": "array",
+        "items": {
+          "$ref":  "#/definitions/container"
+        }
     }
   },
   "required": ["workspaces", "hosts"],
@@ -83,11 +89,22 @@
 
     "container": {
       "type": "object",
-      "required": ["name", "imagename"],
+      "required": ["name", "imagename", "hostname"],
       "additionalProperties": false,
       "properties": {
         "name": {"type": "string"},
         "imagename": {"type": "string"},
+        "hostname": {"type": "string"},
+        "enabled": {
+          "type": "boolean",
+          "descrption": "Should the container be started if it is missing",
+          "default": true
+        },
+        "disabled": {
+          "type": "boolean",
+          "descrption": "Should the container be started if it is missing",
+          "default": false
+        },
         "upgrade": {
           "type": "boolean",
           "description": "If the containers are not running with the right image restart them.",
