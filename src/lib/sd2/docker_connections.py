@@ -18,6 +18,7 @@ ON_POSIX = 'posix' in sys.builtin_module_names
 g_args = None
 g_workspaces = None
 
+
 class DockerConnections(Connections):
     host_to_contact = None
     def __init__(self, args, workspaces):
