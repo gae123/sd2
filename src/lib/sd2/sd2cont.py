@@ -115,9 +115,9 @@ def create_start_docker_if_needed(host_name, container_host_name, dryrun, upgrad
         ] + containers.split()
         inspout = util.remote_subprocess_check_output(host_name, cmd)
         running = [line.split(',')[0] for line in inspout.split() if
-                   line.split(',')[1].startswith(container_host_name)]
+                   line.split(',')[1] == container_host_name]
         image = [line.split(',')[2] for line in inspout.split() if
-                 line.split(',')[1].startswith(container_host_name)]
+                 line.split(',')[1] == container_host_name]
 
     create_new_one = False
     if running == ['true']:
