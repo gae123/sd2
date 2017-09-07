@@ -7,6 +7,7 @@ import copy
 import os
 import logging
 import sys
+import subprocess
 
 from . import util
 
@@ -162,6 +163,21 @@ def do_containers(host, containers, force, dryrun, upgrade):
         ret0 = create_start_docker_if_needed(host, cont, dryrun, upgrade)
         ret = ret or ret0
     return ret
+
+def check_for_prereqs():
+    tools_found = True
+    for tool in [
+        ['ssh', 'Please install ssh and restart..'],
+        ['rsync', 'Please install rsync and restart..'],
+        ['fswatch', 'Please install fswatch and restart..'],
+    ]:
+        try:
+            rr = subprocess.check_output("type {}".format(tool[0]), shell=True)
+        except Exception as ex:
+            sys.stdout.write("{}\n".format(tool[1]))
+            tools_found = False
+    if not tools_found:
+        sys.exit(1)
     
     
 def main(args):

@@ -182,6 +182,8 @@ def parse_arguments():
     
     setup_logging(parser)
 
+    sd2.sd2cont.check_for_prereqs()
+
     if g_args.version:
         print sd2.__version__
         sys.exit(0)
@@ -189,7 +191,6 @@ def parse_arguments():
     logging.info("---------------sd2 %s-------------------", sys.argv)
         
     g_args.func(g_args)
-
 
 parse_arguments()
 
