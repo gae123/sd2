@@ -122,23 +122,26 @@ def create_start_docker_if_needed(host_name, container_host_name, dryrun, upgrad
 
     create_new_one = False
     if running == ['true']:
-        if image[0] == myhosts.get_container_docker_image(container_host_name):
+        if (image[0] == myhosts.get_container_docker_image(container_host_name) and
+            myhosts.is_container_enabled(container_host_name)):
             print(container_host_name + ': Found running...')
         else:
-            print(container_host_name + ': Found running a different image {}.'.format(image))
+            if (not myhosts.is_container_enabled(container_host_name)):
+                print(container_host_name + ': Found running when it should not.')
+            else:
+                print(container_host_name + ': Found running a different image {}.'.format(image))
             if upgrade or myhosts.get_container_upgrade_flag(container_host_name):
                 print('{}: Removing container to start one with the right image {}'.format(
                     container_host_name, myhosts.get_container_docker_image(container_host_name)))
                 remove_container_by_hostname(host_name, container_host_name, dryrun)
-                create_new_one = True
+                create_new_one = myhosts.is_container_enabled(container_host_name)
     else:
         if running == ['false']:
             print(container_host_name + ': Found stopped and removing. ')
             remove_container_by_hostname(host_name, container_host_name, dryrun)
-            create_new_one = True
         else:
             print(container_host_name + ': Not Found. ')
-            create_new_one = True
+        create_new_one = myhosts.is_container_enabled(container_host_name)
     if create_new_one:
         print(container_host_name + ' Creating a new one...')
         create_start_docker(host_name, container_host_name, dryrun)

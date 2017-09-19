@@ -41,6 +41,8 @@ def init(a_config_dct=None):
             image_name = imagename if isinstance(imagename,
                                                   basestring) else \
                         imagename['imagename']
+            if isinstance(imagename, dict):
+                enabled = imagename.get('enabled', True) and not imagename.get('disabled', False)
             cont = {
                 'ip': "172.30.{}.{}".format(base, 101 + ii),
                 'image': imagesdict[image_name],
@@ -48,7 +50,8 @@ def init(a_config_dct=None):
                     ii if isinstance(imagename, basestring) else imagename.get(
                     'name', ii))),
                 'upgrade': False if isinstance(imagename, basestring) else imagename.get('upgrade'),
-                'host': host # The host where the container lives
+                'host': host, # The host where the container lives
+                'enabled': enabled
             }
             containers.append(cont)
             containersdict[cont['name']] = cont
@@ -59,6 +62,9 @@ def exists_container(containerName):
     if not initialized:
         init()
     return containersdict.get(containerName)
+
+def is_container_enabled(containerName):
+    return containersdict.get(containerName).get('enabled', True)
 
 def get_container_extra_flags(containerName):
     if not initialized:
