@@ -8,23 +8,43 @@ import fcntl
 import os
 import sys
 import datetime
+import copy
+import json
+import hashlib
 
 from .util import kill_subprocess_process
 from . import myhosts
 from . import util
+from . import gen_ssh_config
 from .connections import Connections
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
-g_args = None
-g_workspaces = None
+def digest(obj):
+    rr = []
+    for option in (gen_ssh_config.ssh_option_names + 
+        ['disabled', 'enabled', 'name', 'base', 'sudo_ssh']):
+        if obj.get(option):
+            rr.append(obj.get(option))
+
+    for entry in obj.get('containers', []):
+        rr2 = []
+        if entry.get('ip'):
+            rr2.append(entry['ip'])
+        if entry.get('image'):
+            for option in ('ip', 'ports'):
+                if entry['image'].get(option):
+                    rr2.append(entry['image'][option])
+        rr.append(sorted(rr2))
+    return sorted(rr)
 
 class SSHConnections(Connections):
     hosts_to_ssh = None
-    def __init__(self, args, workspaces):
-        global g_args, g_workspacesd
-        g_args = args
-        g_workspaces = workspaces
+    def __init__(self, args):
+        self.hosts_to_ssh = {}
+
+    def init(self, args):
+        previous_hosts_to_ssh = self.hosts_to_ssh
         self.hosts_to_ssh = {}
         for host in myhosts.hosts:
             if (util.is_localhost(host['name']) or
@@ -32,7 +52,7 @@ class SSHConnections(Connections):
                 not myhosts.get_container_names(host['name'])):
                 logging.debug('SSH:SKIP %s', host['name'])
                 continue
-            if not g_args.hosts or host['name'] in g_args.hosts:
+            if not args.hosts or host['name'] in args.hosts:
                 host['needsync'] = 1
                 
                 if host.get('sudo_ssh'):
@@ -42,17 +62,29 @@ class SSHConnections(Connections):
                     
                 self.hosts_to_ssh[host['name']] = {
                     'name': host['name'],
-                    'sshproc': None,
-                    'sshcmd': sshcmd + ' -T ' + host['name'] + '-ports'
+                    'sshcmd': sshcmd + ' -T ' + host['name'] + '-ports',
+                    'ssh': {
+                        'proc': None
+                    },
+                    '_digest': digest(host)
                 }
+        for name,host in previous_hosts_to_ssh.iteritems():
+            if (self.hosts_to_ssh.get(name) and  
+                self.hosts_to_ssh.get(name)['_digest'] == host['_digest']):
+                self.hosts_to_ssh.get(name)['ssh'] = host['ssh']
+                logging.debug("Reusing host {}".format(name))
+                continue
+            logging.info("Shutting down ssh to host '{}'".format(name))
+            proc = host['ssh']['proc']
+            kill_subprocess_process(proc, "SSH {}".format(host['name']))    
 
     def poll(self):
         for host in self.hosts_to_ssh.values():
-            if host['sshproc']:
-                host['sshproc'].poll()
+            if host['ssh']['proc']:
+                host['ssh']['proc'].poll()
                 while (True):
                     try:
-                        line = host['sshproc'].stderr.readline()
+                        line = host['ssh']['proc'].stderr.readline()
                     except IOError:
                         break
                     if line:
@@ -61,35 +93,37 @@ class SSHConnections(Connections):
                     else:
                         break
             # logging.info("%s %s",host, host['sshproc'].returncode if host['sshproc'] else '???')
-            if host['sshproc'] is None or host['sshproc'].returncode != None:
-                if host['sshproc'] and host['sshproc'].returncode != None:
-                    log = logging.info if host['sshproc'].returncode == 0 else logging.error
+            if host['ssh']['proc'] is None or host['ssh']['proc'].returncode != None:
+                if host['ssh']['proc'] and host['ssh']['proc'].returncode != None:
+                    log = logging.info if host['ssh']['proc'].returncode == 0 else logging.error
                     log("SSH:RC %s=%s",
                                  host['sshcmd'],
-                                 host['sshproc'].returncode)
-                    host['sshproc'] = None
+                                 host['ssh']['proc'].returncode)
+                    host['ssh']['proc'] = None
                 # Only try to start once every 30 seconds
-                if (host.get('ssh_last_connection') and
+                if (host['ssh'].get('last_connection') and
                             (datetime.datetime.now() - host[
-                                'ssh_last_connection']).seconds < 30):
+                                'ssh']['last_connection']).seconds < 30):
                     continue
                 logging.info("SSH:START %s", host['sshcmd'])
                 try:
-                    host['sshproc'] = subprocess.Popen(
+                    host['ssh']['proc'] = subprocess.Popen(
                         host['sshcmd'],
                         shell=True,
                         stdin=subprocess.PIPE,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
                         close_fds=ON_POSIX)
-                    host['ssh_last_connection'] = datetime.datetime.now()
+                    host['ssh']['last_connection'] = datetime.datetime.now()
                 except Exception as ex:
                     logging.warning("SSH:START:EXC: %s", ex)
-                fl = fcntl.fcntl(host['sshproc'].stderr, fcntl.F_GETFL)
-                fcntl.fcntl(host['sshproc'].stderr, fcntl.F_SETFL,
+                fl = fcntl.fcntl(host['ssh']['proc'].stderr, fcntl.F_GETFL)
+                fcntl.fcntl(host['ssh']['proc'].stderr, fcntl.F_SETFL,
                             fl | os.O_NONBLOCK)
 
     def shutdown(self):
-        for host in self.hosts_to_ssh.values():
-            proc = host['sshproc']
-            kill_subprocess_process(proc, "SSH {}".format(host['name']))
+        pass
+        # for host in self.hosts_to_ssh.values():
+        #     proc = host['sshproc']
+        #     kill_subprocess_process(proc, "SSH {}".format(host['name']))
+

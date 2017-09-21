@@ -50,6 +50,7 @@ def kill_subprocess_process(proc, label=''):
             return
         #proc.kill()
         os.system("sudo kill {}".format(proc.pid))
+        logging.debug("KILL %s %s", label, proc.pid)
     except:
         logging.warning("KILL:FAIL %s", label)
         pass

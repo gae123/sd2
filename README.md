@@ -223,9 +223,7 @@ multiple containers to access the same repository.
     The system automatically assigns addresses in the 172.30.X.X private address
     range. It uses the 3rd octet for the DH and the 4 octet for the containers.
  
- 
 ## Future Directions
-
 1. Many times I have thought that this separation should take one more step
 where the development environment can be different from the execution environment.
 In this directions, you have EH, DH, DC and one more set of environments called ECs 
@@ -237,3 +235,8 @@ on ssh & friends but I can see how in the future this could be expanded to embra
 and leverage such frameworks.
 1. The implemenation is in python but relies a lot on unix tools. I am 
 sure people would want a Windows port.
+
+## For developers
+1. Build the source code by running `cd build; make`
+1. The main program is in bin/sd2 start from there
+1. When ready to push change the version number at the top of build/Makefile and run `make push`

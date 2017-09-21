@@ -57,29 +57,29 @@ def init():
     return config_dct
 
 
+g_ssh_connections = None
 def main():
-    from sd2.ssh_connections import SSHConnections
     from sd2.fswatch_connections import FSWatcher
     from sd2.rsync_connections import RsyncConnections
     from sd2.docker_connections import DockerConnections
-    ssh_connections = fswatchers = rsyncers = dockers =None
+    fswatchers = rsyncers = dockers =None
     try:
         config_dct = init()
-        ssh_connections = SSHConnections(g_args, g_workspaces)
+        g_ssh_connections.init(g_args)
         fswatchers = FSWatcher(g_args, g_workspaces)
         rsyncers = RsyncConnections(g_args, g_workspaces)
         dockers = DockerConnections(g_args, g_workspaces)
         while True:
             if sd2.has_timestamp_changed(config_dct):
                 raise RestartEcxeption()
-            ssh_connections.poll()
+            g_ssh_connections.poll()
             fswatchers.poll()
             rsyncers.poll()
             dockers.poll()
             time.sleep(.1)
     finally:
-        if ssh_connections:
-            ssh_connections.shutdown()
+        if g_ssh_connections:
+            g_ssh_connections.shutdown()
         if fswatchers:
             fswatchers.shutdown()
         if rsyncers:
@@ -89,6 +89,9 @@ def main():
 
 
 def daemon(g_args):
+    from sd2.ssh_connections import SSHConnections
+    global g_ssh_connections
+    g_ssh_connections = SSHConnections(g_args)
     while True:
         try:
             main()
