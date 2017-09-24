@@ -243,7 +243,7 @@ def read_config():
         
         _merge_into(config_dct, dct)
     
-    process_inheritance(config_dct, ['hosts', 'workspaces'])
+    process_inheritance(config_dct, ['images', 'hosts', 'workspaces'])
     process_containers(config_dct)
     process_expansions(config_dct)
     validate(config_dct)
