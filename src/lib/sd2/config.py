@@ -67,9 +67,10 @@ def process_containers(dct):
 
     dct_cnt = dct['containers']
     for cont in dct_cnt:
-        if not cont.get('name'):
-            exit_with_error("ERROR: Each container must have a name.\n")
-        if not cont.get('hostname'):
+        if cont.get('name') is None or type(cont.get('name')) != type(''):
+            message = "ERROR: Each container must have a name that is a string. {}\n"
+            exit_with_error(message.format(cont))
+        if cont.get('hostname') is None:
             exit_with_error("ERROR: Container '{}' does not have a host.\n".format(cont['name']))
 
         if cont.get('enabled') == False or cont.get('disabled') == True:
