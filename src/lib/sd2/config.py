@@ -154,8 +154,8 @@ def process_inheritance(config_dct, keys):
             for key in ['abstract', 'extends']:
                 if dct.get(key) is not None:
                     del dct[key]
-            if not isabstract:
-                process_expansions(dct)
+            #if not isabstract:
+            #    process_expansions(dct)
             hostsdict[dct['name']] = dct
             if not isabstract:
                 rr.append(dct)
