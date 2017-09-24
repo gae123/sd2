@@ -123,6 +123,7 @@
         "name": {"type": "string"},
         "docker_name": {"type": "string"},
         "docker_auth": {"type": "string"},
+         "mount_home_dir": {"type": "boolean", "default": true},
         "ports": {
           "type": "array",
           "items": {
