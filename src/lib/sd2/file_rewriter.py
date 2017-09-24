@@ -47,6 +47,14 @@ class FileRewriter(object):
                              [g_seperator_end] +
                              after):
                 fd.write(line + '\n')
+        os.system("{} chmod 644 {}".format(
+            'sudo' if sudo else '',
+            path
+            ))
+        os.system("{} chown root {}".format(
+            'sudo' if sudo else '',
+            path
+            ))
         os.system("{} mv {} {}.bk".format(
             'sudo' if sudo else '',
             self.path, self.path))
