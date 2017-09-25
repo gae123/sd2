@@ -76,7 +76,7 @@ def get_container_mount_home_dir(containerName):
     if not initialized:
         init()
     cont = containersdict[containerName]
-    return cont['image']['mount_home_dir']
+    return cont['image'].get('mount_home_dir', True)
 
 def get_container_command(containerName):
     if not initialized:
