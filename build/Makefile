@@ -1,7 +1,7 @@
 #############################################################################
 # Copyright (c) 2017 SiteWare Corp. All right reserved
 #############################################################################
-SD2_VERSION := 0.9.62
+SD2_VERSION := 0.9.63
 
 TOP := $(realpath ..)
 SD2OS := $(shell uname)
@@ -62,7 +62,7 @@ $(TOP)/src/lib/sd2/sd2_config_schema.py: $(TOP)/src/lib/sd2/sd2_config_schema.js
 push: all
 	(git tag -d $(SD2_VERSION) && git push origin :refs/tags/$(SD2_VERSION)) || true
 	git tag $(SD2_VERSION)
-	git push --tags
+	git push --follow-tags
 
 clean:
 	rm -rf $(OUT) $(TOP)/src/lib/sd2/sd2_config_schema.py
