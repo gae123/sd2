@@ -62,8 +62,8 @@ class DockerConnections(Connections):
                 except IOError:
                     break
                 if line:
-                    logging.info("DOCKER {}: {}".format(
-                        host['name'], line.rstrip()))
+                    log = logging.error if 'error' in line.lower() else logging.info
+                    log("DOCKER {}: {}".format(host['name'], line.rstrip()))
                 else:
                     break
             if proc.returncode is None:
