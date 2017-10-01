@@ -92,7 +92,7 @@
       "required": ["name", "imagename", "hostname"],
       "additionalProperties": false,
       "properties": {
-        "name": {"type": "string"},
+        "name": {"type": ["string","number"]},
         "abstract": {"type": "boolean"},
         "extends": {"type": "string"},
         "imagename": {"type": "string"},
@@ -173,7 +173,10 @@
             "The destination directory. Optional, if missing it will be the same the source_root",
             "type": "string"
         },
-        "delete": {"type": "boolean"},
+        "delete": {
+          "description": "Exact mirror, delete any files that exist only in dest.",
+          "type": "boolean"
+        },
         "paths": {
           "type": "array",
           "items": {
@@ -183,10 +186,28 @@
         "targets": {
           "type": "array",
           "items": {
-            "type": "string"
+                "anyOf": [
+                    {
+                        "type": "string"
+                    }, 
+                    {
+                        "$ref":  "#/definitions/desthost"
+                    }
+                ]
           },
           "uniqueItems": true
         }
+      }
+    },
+
+    "desthost": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {"type": "string"},
+        "enabled": {"type": "boolean"},
+        "disabled": {"type": "boolean"}
       }
     },
 
