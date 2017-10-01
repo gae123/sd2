@@ -10,6 +10,7 @@ import sys
 import time
 import sd2
 import json
+import datetime
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -133,11 +134,14 @@ def setup_logging(parser):
     # from an environment variable
     #logDir = os.path.join(os.getenv('HOME'), '.sd2')
     logDir = '/tmp'
-    fileName = 'sd2'
     os.system("mkdir -p '{}'".format(logDir))
+    fileName = 'sd2'
+    logFilePath = "{0}/{1}.log".format(logDir, fileName) 
+    #if (os.path.exists(logFilePath)):
+    #    timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    #    os.rename(logFilePath, logFilePath.replace('.log', '-{}.log'.format(timestamp)))
     fileHandler = logging.handlers.TimedRotatingFileHandler(
-     "{0}/{1}.log".format(logDir, fileName),
-     when='D', backupCount=60)
+                                logFilePath, when='D', backupCount=60)
     fileHandler.setFormatter(logFormatter)
     fileHandler.setLevel(logging.DEBUG)
     rootLogger.addHandler(fileHandler)
