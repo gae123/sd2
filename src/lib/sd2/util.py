@@ -92,7 +92,11 @@ def remote_subprocess_check_output(remote_host, cmd):
     if remote_host and not is_localhost(remote_host):
         cmd = "ssh {} '{}'".format(remote_host, cmd)
     logging.debug("RSCO: " + cmd)
-    output = subprocess.check_output(cmd, shell=True)
+    try:
+        output = subprocess.check_output(cmd, shell=True)
+    except subprocess.CalledProcessError as ex:
+        logging.error("RSCO FAILED cmd=%s rc=%d '%s'", cmd, ex.returncode, ex.output)
+        return ''
     return output
 
 def remote_path_exists(remote_host, path):
