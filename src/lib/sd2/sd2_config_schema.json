@@ -107,9 +107,14 @@
           "descrption": "Should the container be started if it is missing",
           "default": false
         },
-        "upgrade": {
+        "remove_if_version_mismatch": {
           "type": "boolean",
-          "description": "If the containers are not running with the right image restart them.",
+          "description": "If the container is running with the wrong image remove it and restart it.",
+          "default": false
+        },
+        "remove_if_running_when_disabled": {
+          "type": "boolean",
+          "description": "If the container is running and should not remove it.",
           "default": false
         }
       }

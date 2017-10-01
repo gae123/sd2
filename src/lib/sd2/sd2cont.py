@@ -104,7 +104,7 @@ def remove_container_by_hostname(host_name, container_host_name, dryrun):
     else:
         print(cmd)
 
-def create_start_docker_if_needed(host_name, container_host_name, dryrun, upgrade):
+def create_start_docker_if_needed(host_name, container_host_name, dryrun):
     rr = False
     from . import myhosts
     running = None
@@ -123,26 +123,33 @@ def create_start_docker_if_needed(host_name, container_host_name, dryrun, upgrad
 
     create_new_one = False
     if running == ['true']:
+        remove = False
         if (image[0] == myhosts.get_container_docker_image(container_host_name) and
             myhosts.is_container_enabled(container_host_name)):
             print(container_host_name + ': Found running...')
         else:
             if (not myhosts.is_container_enabled(container_host_name)):
                 print(container_host_name + ': Found running when it should not.')
+                reason = " because it should not be running"
+                remove = myhosts.get_container_remove_flag(container_host_name)
             else:
                 print(container_host_name + ': Found running a different image {}.'.format(image))
-            if upgrade or myhosts.get_container_upgrade_flag(container_host_name):
-                print('{}: Removing container to start one with the right image {}'.format(
-                    container_host_name, myhosts.get_container_docker_image(container_host_name)))
-                remove_container_by_hostname(host_name, container_host_name, dryrun)
-                create_new_one = myhosts.is_container_enabled(container_host_name)
-    else:
-        if running == ['false']:
-            print(container_host_name + ': Found stopped and removing. ')
+                reason = 'to start one with the right image {}'.format(
+                        myhosts.get_container_docker_image(container_host_name))
+                remove = myhosts.get_container_upgrade_flag(container_host_name)
+        if remove:
+            print('{}: Removing container {}'.format(container_host_name, reason))
             remove_container_by_hostname(host_name, container_host_name, dryrun)
-        else:
-            print(container_host_name + ': Not Found. ')
+            create_new_one = myhosts.is_container_enabled(container_host_name)
+    elif running == ['false']:
         create_new_one = myhosts.is_container_enabled(container_host_name)
+        print(container_host_name + 
+            ': Found stopped and removing. ({})'.format(create_new_one))
+        remove_container_by_hostname(host_name, container_host_name, dryrun)
+    else:
+        create_new_one = myhosts.is_container_enabled(container_host_name)
+        print(container_host_name + 
+            ': Not Found. ({})'.format(create_new_one))
     if create_new_one:
         print(container_host_name + ' Creating a new one...')
         create_start_docker(host_name, container_host_name, dryrun)
@@ -153,7 +160,7 @@ def create_start_docker_if_needed(host_name, container_host_name, dryrun, upgrad
     return rr
     
 
-def do_containers(host, containers, force, dryrun, upgrade):
+def do_containers(host, containers, force, dryrun):
     if force:
         for cont in containers:
             cmd = "sudo docker rm -f " + cont
@@ -164,7 +171,7 @@ def do_containers(host, containers, force, dryrun, upgrade):
                 print(cmd)
     ret = False
     for cont in containers:
-        ret0 = create_start_docker_if_needed(host, cont, dryrun, upgrade)
+        ret0 = create_start_docker_if_needed(host, cont, dryrun)
         ret = ret or ret0
     return ret
 
@@ -201,7 +208,7 @@ def main(args):
     # if the user just passed 0 convert it too hostname-0
     containers = [(x if x.startswith(args.hostname)
                     else (args.hostname + '-' + x)) for x in containers]
-    ret = do_containers(args.hostname, containers, args.force, args.dryrun, args.upgrade)
+    ret = do_containers(args.hostname, containers, args.force, args.dryrun)
     
     logging.debug("sd2cont: Starting %s on %s", containers, args.hostname)
     
@@ -220,10 +227,7 @@ def add_argument_parsing(subparsers):
     parser_cont.add_argument('--force', '-f', action="store_true",
                              default=False,
                              help="first remove existing container if exists")
-    parser_cont.add_argument(
-        '--upgrade', '-u', action="store_true",
-        default=False,
-        help="first remove existing container if exists and is different version")
+    
     parser_cont.add_argument('--all', '-a', action="store_true", default=False,
                              help="Used to restart all containers in this host")
     parser_cont.add_argument("hostname", nargs="?",
