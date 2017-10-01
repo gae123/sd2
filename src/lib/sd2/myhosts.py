@@ -38,19 +38,22 @@ def init(a_config_dct=None):
         if base is not None:
             host['local-ip'] = "172.30.{}.100".format(base)
         containers = []
-        for ii, imagename in enumerate(config_containers):
-            image_name = imagename if isinstance(imagename,
-                                                  basestring) else \
-                        imagename['imagename']
-            if isinstance(imagename, dict):
-                enabled = imagename.get('enabled', True) and not imagename.get('disabled', False)
+        for ii, container in enumerate(config_containers):
+            image_name = container if isinstance(container, basestring) else \
+                        container['imagename']
+            enabled = host['enabled']
+            if isinstance(container, dict) and enabled:
+                enabled = container.get('enabled', True) and not container.get('disabled', False)
             cont = {
                 'ip': "172.30.{}.{}".format(base, 101 + ii),
                 'image': imagesdict[image_name],
                 'name': "{}-{}".format(host_name, (
-                    ii if isinstance(imagename, basestring) else imagename.get(
-                    'name', ii))),
-                'upgrade': False if isinstance(imagename, basestring) else imagename.get('upgrade'),
+                    ii if isinstance(container, basestring) else str(container.get(
+                    'name', ii)))),
+                'remove_if_version_mismatch': False if isinstance(container, basestring) 
+                                else container.get('remove_if_version_mismatch', False),
+                'remove_if_running_when_disabled': (False if isinstance(container, basestring) 
+                          else container.get('remove_if_running_when_disabled', False)),
                 'host': host, # The host where the container lives
                 'enabled': enabled
             }
@@ -96,7 +99,14 @@ def get_container_upgrade_flag(containerName):
     if not initialized:
         init()
     cont = containersdict.get(containerName)
-    return cont.get('upgrade')
+    return cont.get('remove_if_version_mismatch')
+
+def get_container_remove_flag(containerName):
+    if not initialized:
+        init()
+    cont = containersdict.get(containerName)
+    print '*******'  + containerName + " " + str(cont)
+    return cont.get('remove_if_running_when_disabled', False)
 
 def get_container_docker_image(containerName):
     if not initialized:
