@@ -3,6 +3,7 @@
 # Copyright (c) 2017 SiteWare Corp. All right reserved
 #############################################################################
 import sys
+import logging
  
 initialized = False
 config_dct = {}
@@ -25,10 +26,10 @@ def init(a_config_dct=None):
     hosts = config_dct.get('hosts', [])
     hostsdict = {x['name']: x for x in hosts}
     
-    
     for ii,host in enumerate(hosts):
         base = host.get('base')
         host_name = host['name']
+        host['enabled'] = host.get('enabled', True) and not host.get('disabled', False)
         config_containers = host.get('containers', [])
         if base is None and config_containers and not host.get('abstract'):
             msg = "Config Error: Non abstract Host {} has containers but not base\n"
@@ -128,11 +129,7 @@ def get_container_names(hostname):
     return [x['name'] for x in host['containers']]
 
 def is_disabled(hostname):
-    assert isinstance(hostname, basestring)
-    if not initialized:
-        init()
-    host = hostsdict.get(hostname)
-    return not host or not not host.get('disabled')
+    return not is_enabled(hostname)
 
 def is_enabled(hostname):
     assert isinstance(hostname, basestring)
@@ -140,10 +137,12 @@ def is_enabled(hostname):
         init()
     host = hostsdict.get(hostname)
     if not host:
-        cont = containersdict.get(hostname)
-        if cont:
-            host = cont['host']
-    return host and not host.get('disabled')
+        host = containersdict.get(hostname)
+    assert host
+    if host['name'] != hostname:
+        logging.critical("{} {}".format(host['name'], hostname))
+        assert False
+    return host and host.get('enabled', True)
 
 def get_hosts(enabled=True):
     if not initialized:

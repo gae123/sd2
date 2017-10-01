@@ -15,12 +15,10 @@ from .util import kill_subprocess_process
 from .workspace import Workspace
 from .connections import Connections
 
-g_args = None
-g_workspaces = None
 
-def workspace_instance_sync(wi):
+def workspace_instance_sync(wi, args):
     for host in Workspace(wi).get_targets():
-        if g_args.hosts and not host['name'] in g_args.hosts:
+        if args.hosts and not host['name'] in args.hosts:
             continue
         host['needsync'] = 1
 
@@ -55,12 +53,12 @@ def workspace_instance_has_path(wi, apath):
         return True
     return False
 
-def deal_with_changed_file(wi, fpath):
+def deal_with_changed_file(wi, fpath, args):
     if workspace_instance_has_path(wi, fpath):
         logging.debug("FOUND: wsi %s has path %s", wi['name'], fpath)
         if os.path.isfile(fpath):
             for target in Workspace(wi).get_targets():
-                if g_args.hosts and not target['name'] in g_args.hosts:
+                if args.hosts and not target['name'] in args.hosts:
                     continue
                 if wi.get('dest_root'):
                     dpath = fpath.replace(wi['source_root'], wi['dest_root'])
@@ -70,12 +68,12 @@ def deal_with_changed_file(wi, fpath):
                     fpath,
                     target['name'],
                     dpath)
-                if g_args.dryrun:
+                if args.dryrun:
                     cmd = 'echo ' + cmd
                 logging.info(cmd)
                 subprocess.Popen(cmd, shell=True)
         else:
-            workspace_instance_sync(wi)
+            workspace_instance_sync(wi, args)
 
 
 # fswatch includes everything in --include if exists. Then checks --exclude
@@ -83,13 +81,16 @@ def deal_with_changed_file(wi, fpath):
 # http://emcrisostomo.github.io/fswatch/doc/1.4.3/pdf/fswatch.pdf
 class FSWatcher(Connections):
     def __init__(self, args, workspaces):
-        global g_args, g_workspaces
-        g_args = args
-        g_workspaces = workspaces
+        self._args = args
+        self._workspaces = []
         logging.debug("FSW:EE")
-        host = g_args.hosts
+        host = self._args.hosts
         assert host == '' or isinstance(host, list)
-        for wi in g_workspaces:
+        for wi in workspaces:
+            if not Workspace(wi).is_enabled():
+                logging.info('FSW:SKIP {} '.format(wi['name']))
+                continue
+            self._workspaces.append(wi)
             cmd = ['fswatch',
                    '--latency', '0.1',
                    '--recursive',
@@ -134,16 +135,18 @@ class FSWatcher(Connections):
         logging.debug("FSW:LL")
 
     def poll(self):
-        for ws in g_workspaces:
+        for ws in self._workspaces:
             proc = ws['fswatchproc']
             try:
                 line = proc.stdout.readline().strip()
             except IOError:
                 continue
             logging.debug('CONS %s %s', ws['name'], line)
-            deal_with_changed_file(ws, line)
+            deal_with_changed_file(ws, line, self._args)
 
     def shutdown(self):
-        for wi in g_workspaces:
+        for wi in self._workspaces:
             proc = wi['fswatchproc']
             kill_subprocess_process(proc, "FSWATH {}".format(wi['name']))
+
+

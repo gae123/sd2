@@ -16,8 +16,6 @@ from . import myhosts
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
-g_args = None
-g_workspaces = None
 
 def slash_ending(path):
     if not path.endswith(os.path.sep):
@@ -25,11 +23,11 @@ def slash_ending(path):
     return path
 
 # For rsync --exclude and --include are followed in order. If something is
-def get_rsync_cmd(ws, host):
+def get_rsync_cmd(ws, host, args):
     cmd = ['rsync',
            '-rlptgoOzv'
            ]
-    if g_args.dryrun:
+    if args.dryrun:
         cmd.append('--dry-run')
     for paths in ws.get('paths'):
         if paths.get('include'):
@@ -41,7 +39,7 @@ def get_rsync_cmd(ws, host):
     if ws.get('delete'):
         cmd.append('--delete')
         cmd.append('--force-delete')
-    if not g_args.nossh:
+    if not args.nossh:
         cmd.append('-e')
         cmd.append('ssh')
     path = os.path.join(ws['source_root'], ws.get("source", ""))
@@ -55,13 +53,18 @@ def get_rsync_cmd(ws, host):
 class RsyncConnections(Connections):
     def __init__(self, args, workspaces):
         from .events import events
-        global g_args, g_workspaces
-        g_args = args
-        g_workspaces = workspaces
+        self._args = args
+        self._workspaces = []
+        for wsi in workspaces:
+            if not Workspace(wsi).is_enabled():
+                logging.info('RSYNC:SKIP {} '.format(wsi['name']))
+                continue
+            for host in Workspace(wsi).get_targets():
+                self._workspaces.append(wsi)
         self._listener = events.listen()
 
     def handle_host(self, wsi, host):
-        if g_args.hosts and not host['name'] in g_args.hosts:
+        if self._args.hosts and not host['name'] in self._args.hosts:
             return
         if not myhosts.is_enabled(host['name']):
             #logging.debug("RSYNC:SKIP {}".format(host['name']))
@@ -100,7 +103,7 @@ class RsyncConnections(Connections):
             host['needsync'] = 1
         if host.get('needsync') == 0:
             return
-        cmd = get_rsync_cmd(wsi, host)
+        cmd = get_rsync_cmd(wsi, host, self._args)
         logging.info("RSYNC {}:{} {}".format(wsi['name'],
                                              host['name'], " ".join(cmd)))
         host['rsyncproc'] = subprocess.Popen(cmd,
@@ -118,19 +121,20 @@ class RsyncConnections(Connections):
             event = events.get_pending_event(self._listener)
             if event["action"] != "start":
                 continue
-            for wsi in g_workspaces:
+            for wsi in self._workspaces:
                 for host in Workspace(wsi).get_targets():
                     if host['name'].startswith(event['hostname']):
                         host['needsync'] = 1
         
-        for wsi in g_workspaces:
+        for wsi in self._workspaces:
             for host in Workspace(wsi).get_targets():
                 self.handle_host(wsi, host)
 
     def shutdown(self):
-        for wsi in g_workspaces:
+        for wsi in self._workspaces:
             for host in Workspace(wsi).get_targets():
                 proc = host.get('rsyncproc')
                 kill_subprocess_process(
                     proc,
                     "RSYNC {} {}".format(host['name'], wsi['name']))
+
