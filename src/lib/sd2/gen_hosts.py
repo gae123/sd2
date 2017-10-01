@@ -51,7 +51,7 @@ from .file_rewriter import FileRewriter
     
 def get_our_config():
     rr = ''
-    for host in get_hosts():
+    for host in get_hosts(enabled=False):
         if not host.get('containers'):
             continue
         rr += '{}\t{}\n'.format(host['local-ip'], host['name'] + '-local')

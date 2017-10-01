@@ -104,7 +104,7 @@ def generate_for_host(host):
 
 def get_our_ssh_config():
     rr = ''
-    for host in sd2.get_hosts():
+    for host in sd2.get_hosts(enabled=False):
         if not host.get("User"):
             host['User'] = os.getenv('USER')
         try:
