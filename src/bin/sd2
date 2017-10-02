@@ -117,6 +117,15 @@ def setup_logging(parser):
     import logging.handlers
     global g_args
     g_args = parser.parse_args(sys.argv[1:])
+
+    logDir = '/tmp'
+    os.system("mkdir -p '{}'".format(logDir))
+    fileName = 'sd2'
+    logFilePath = "{0}/{1}.log".format(logDir, fileName) 
+    # if (os.path.exists(logFilePath)):
+    #     timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    #     os.system("mv {} {}".format(
+    #         logFilePath, logFilePath.replace('.log', '-{}.log'.format(timestamp))))
     
     level = {
      'info': logging.INFO,
@@ -133,13 +142,6 @@ def setup_logging(parser):
     # TODO /tmp is probably not the right place for this, at a minimum drive it
     # from an environment variable
     #logDir = os.path.join(os.getenv('HOME'), '.sd2')
-    logDir = '/tmp'
-    os.system("mkdir -p '{}'".format(logDir))
-    fileName = 'sd2'
-    logFilePath = "{0}/{1}.log".format(logDir, fileName) 
-    #if (os.path.exists(logFilePath)):
-    #    timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    #    os.rename(logFilePath, logFilePath.replace('.log', '-{}.log'.format(timestamp)))
     fileHandler = logging.handlers.TimedRotatingFileHandler(
                                 logFilePath, when='D', backupCount=60)
     fileHandler.setFormatter(logFormatter)

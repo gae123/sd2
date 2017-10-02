@@ -39,8 +39,8 @@ def workspace_instance_has_path(wi, apath):
                         logging.debug("FOUND:INCL:%s (%s)", ipath, apath)
                         found = True
                         break
-                if not found:
-                    return False
+                #if not found:
+                #    return False
                 if found:
                     return True
             if paths.get('exclude'):

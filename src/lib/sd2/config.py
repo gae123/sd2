@@ -124,7 +124,7 @@ def _dfs(lst):
 
 
 def process_inheritance(config_dct, keys):
-    def get_processed_dct(host, hostsdict):
+    def get_processed_dct(tlkey, host, hostsdict):
         rr = {}
         extends = host.get('extends', [])
         if isinstance(extends, basestring):
@@ -151,7 +151,7 @@ def process_inheritance(config_dct, keys):
         for dct in dfsnodes:
             isabstract = dct.get('abstract')
             #disabled = dct.get('disabled')
-            dct = get_processed_dct(dct, hostsdict)
+            dct = get_processed_dct(tlkey, dct, hostsdict)
             for key in ['abstract', 'extends']:
                 if dct.get(key) is not None:
                     del dct[key]
