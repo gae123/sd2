@@ -162,6 +162,7 @@
       "additionalProperties": false,
       "properties": {
         "name": {"type": "string"},
+        "enabled": {"type": "boolean"},
         "abstract": {"type": "boolean"},
         "extends": {"type": "string"},
         "source_root": {
