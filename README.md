@@ -14,17 +14,18 @@ file that describes a developer's development environments. It also relies
 that isolate the different environments. sd<sup>2</sup> seperates the editing 
 environment from the environment where compilation and testing takes place. 
 In some sense, sd2 brings the advantages of a microservices environment to 
-the development phase even when you do not use microservices in your
+the development phase, even when you do not use microservices in your
 architecture.
 
 This repository provides a tool called `sd2` that assists developers embracing the
 sd<sup>2</sup> process.
 
 ## The Basic Concepts
-In sd<sup>2</sup> you split your editing, browsing and source control activities from all 
+In sd<sup>2</sup> you split your editing, browsing and source control activities 
+from all 
 the other development activities. Editing is done on your developer 
 workstation that we will call editing host(EH). All the other development 
-activities are performed containers (DC) that can run anywhere you want. 
+activities are performed in containers (DC) that can run anywhere you want. 
 The containers run on hosts that we call development hosts (DH).
 
 ![Use Case](https://docs.google.com/drawings/d/1uO3umvqVMIM2HnrXJwRAgAX2UWRYNVqEKDTNggXlEIc/pub?w=960&h=720)
@@ -33,10 +34,11 @@ The containers run on hosts that we call development hosts (DH).
 1. First of all, sd2 builds on top of all the lightweight virtualization advantages:
     1. Start a development stack in milliseconds, exactly the same stack you started last time.
     1. Keep multiple development stacks isolated from each other. 
-    By separating EH and DH/DC you can now version independently your 
-    EH from your DH & DC where your development environment runs. 
-    So now you can work on multiple projects (or releases of the same project) 
+       So now you can work on multiple projects (or releases of the same project) 
     with incompatible stacks at the same time.
+    1. By separating EH and DH/DC you can now version independently your 
+    EH from your DH & DC. Gone are the days where upgrading to the next version
+    of MacOS broke a number of your development projects.
     1. In a team environment, sd<sup>2</sup> guarrantee that every
      developer has exactly the 
     same development stack independent of the editing environment they use.
@@ -47,9 +49,12 @@ commit on EHs, there is no chance for accidentally commit generated artifacts.
 1. Modern IDEs are heavyweight and have perofrmance requirements that increase 
 with bigger projects. sd2 uses multiple replicas of the source code so both the 
 IDE and the compilers/transpilers etc can work independently.
+1. If your source code targets multiple output platforms you can very efficiently 
+simultaneoulsy make a change in one place and have it compile and run in all 
+the target platforms.
 
 ## Supported Platforms
-* **Editing Host (EH)**: MacOS  (Linux should be easy but has not been tested)
+* **Editing Host (EH)**: MacOS  & Linux (Linux is not tested but should work)
 * **Development Host (DH)**: Linux (MacOs should be easy but has not been tested) 
 
 ## Prerequisites
@@ -63,31 +68,34 @@ need one machine (e.g. a MacOS notebook) with docker installed that will
    1. Add your user to sudoers without a password requirement (see [here](https://askubuntu.com/questions/168461/how-do-i-sudo-without-having-to-enter-my-password))
 1. Development Host(s) Requirements
    1. Install rsync, ssh server and docker
-   1. Add your user to sudoers (see [here](https://askubuntu.com/questions/168461/how-do-i-sudo-without-having-to-enter-my-password))
+   1. Add your user to sudoers without a password requirement (see [here](https://askubuntu.com/questions/168461/how-do-i-sudo-without-having-to-enter-my-password))
 1. Other
    1. Before you start you need to make sure that you can use ssh with  
       certificates to login from the editing machine to the development host(s). 
-      Do not add the hosts to .ssh/config or /etc/hosts, the tool will take care of this.
-   1. You also need to create your container image(s). The image(s) will contain your 
+      Do not add the containers to .ssh/config or /etc/hosts, 
+      the tool will take care of this.
+   1. You also need to create your docker container image(s). 
+      The image(s) will contain your 
       development environment. Evertyhing but your IDE should be there.
       Here are some suggestions to follow to make images compatible with 
       sd<sup>2</sup>:
        1. The container will run as a daemon so put a `sleep infinity` at the end 
        so it does not exit.
        1. You will want to access inside the container so install ssh server 
-          and maybe vnc and screeen.
+          and maybe vnc and/or screeen.
        1. Install rsync if you plan to copy workspaces into the container.   
-       1. Your container will run using the same username/id you have on the 
-       host. It is a good idea to use a script that relocates exising users 
+       1. Your container (DC) will run using the same username/id you have on the 
+       host (DH). It is a good idea to use a script that relocates exising users 
        in the container os that have the same userid with the one you have 
        on the host (see [this](https://raw.githubusercontent.com/gae123/sd2/master/examples/entrypoint.sh).
        
 ## How to set it up
-sd2 relies on a configuration file that defines your DHs, your conainers/images 
-and your repositories/workspaces. The configuration file needs to be in your home directory 
+sd2 relies on one or more configuration files that define your DHs, your conainers/images 
+and your repositories/workspaces. The configuration file needs to be in your 
+home directory 
 under .sd2 (ie ~/.sd2/config.yaml). 
 
-A daemon called sd2 reads the configuration 
+sd2 reads the configuration 
 file and takes all the actions needed to maintain the connections and replicate 
 the repositories in real time as they change in the development machine.
 If you change the configuration file, the daemon automatically will change what 
@@ -109,6 +117,8 @@ has three main sections. One that describes the DHs, one that describes the
 containers images, and one that describes the workspaces that you want to be
 synced into the DHs. There is a json schema for the file that you can find
 [here](https://raw.githubusercontent.com/gae123/sd2/master/src/lib/sd2/config_schema.json).
+If there are multiple configuration files, multiple sections with the same
+name can be there.
 
 **Examples**
 A very simple configuration file is shown 
@@ -166,7 +176,7 @@ is parsed and provided as context to the the jinja2 parser. This allows to do
 very cool initializations.
 
 **Inheritance**
-In the workspaces and hosts section you can create abstract sections that do 
+In the workspaces and hosts sections you can create abstract sections that do 
 not describe a workspace or host but provide some key/values pairs that will 
 be inherited later.
 
@@ -176,9 +186,10 @@ it will read and parse all the files and merge them together. This is a great
 way to separate the configuration of unrelated projects.
 
 ## What is not covered by sd<sup>2</sup>
-1. Bring your own editor/IDE. sd<sup>2</sup> is agnostic on how you edit your source code.
-1. Bring your own container images. sd<sup>2</sup> does not provide tools to generate
- docker images, we expect that are already available and published in 
+1. Bring your own editor/IDE. sd<sup>2</sup> is agnostic on how you edit 
+   your source code.
+1. Bring your own container images. sd<sup>2</sup> does not provide tools to 
+   generate docker images, we expect that are already available and published in 
  a local or remote repository.
 1. Although this might change in the future, you are currently responsible to
    set up your DH (a DH really only needs an account with your user name,
@@ -186,9 +197,9 @@ way to separate the configuration of unrelated projects.
  
  
 ## Troubleshooting
-1. Start the commaind as following `sd2 -l debug` to see what it is doing
 1. Start the command as `sd2 --showconfig`. It will show the config file
 as it is after substitutions and will exit.
+1. Start the commaind as following `sd2 -l debug` to see what it is doing
 1. Start the command as `sd2 --showschema`. It will show the json schema file.
 1. Try to ssh to the DHs. You should be able to ssh to any of them from a 
 terminal in your EH.
@@ -201,13 +212,16 @@ way to get shell access to the container.
 `sudo ssh <<DH>> 'sudo docker rm -f $(docker ps -qa)'`
  
 ## FAQ
-1. When I run docker directly on the MacOS why can't I just mount the MacOS 
+1. When I run docker directly on the MacOS can I just mount the MacOS 
 file system on the container?  
 This will work but in most cases, it will have severe performance implications. 
 You can read more about the issue [here](https://forums.docker.com/t/file-access-in-mounted-volumes-extremely-slow-cpu-bound/8076/174).
 1. Is sd2 secure when the development host is across the internet?  
 sd2 always uses ssh to communicate from the editing machine to the 
 development machine so it is as secure as ssh itself.
+1. Is sd2 slow when my EH is my mac and my DH is in AWS?
+  Try it, you will be amazed how fast it is. This is a very common use case
+  of sd2.
 1. Why would I ever want to copy the files to the DH instead of the container itself?  
 The lifetime of a container is expected to be much shorter than the lifetime of a DH. 
 By replicating the repositories to the DH and mount them in the container you save the 
@@ -222,6 +236,9 @@ multiple containers to access the same repository.
 1. What IP addresses do the containers use?  
     The system automatically assigns addresses in the 172.30.X.X private address
     range. It uses the 3rd octet for the DH and the 4 octet for the containers.
+1. Can I have more than one configuration file?
+    sd2 reads all the files in `~/.sd2` ending in -config.yaml so it is possible
+    and highly encouraged if you work in multiple projects
  
 ## Future Directions
 1. Many times I have thought that this separation should take one more step

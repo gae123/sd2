@@ -49,7 +49,8 @@ workspaces:
     dest_root: /tmp/${name}
     targets:
       - paros-0
-      - paros-2
+      - name: paros-2
+        enabled: false
   # Another actual workspace
   - name: 1.sd2
     extends: sd2
