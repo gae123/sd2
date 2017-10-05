@@ -53,41 +53,6 @@ IDE and the compilers/transpilers etc can work independently.
 simultaneoulsy make a change in one place and have it compile and run in all 
 the target platforms.
 
-## Supported Platforms
-* **Editing Host (EH)**: MacOS  & Linux (Linux is not tested but should work)
-* **Development Host (DH)**: Linux (MacOs should be easy but has not been tested) 
-
-## Prerequisites
-The tools have been tested on MacOS and Ubuntu hosts. In the simplest scenario you 
-need one machine (e.g. a MacOS notebook) with docker installed that will
- play the role of both the editing and the development host.
-
-1. Editing Host Requirements
-   1. Install rsync & ssh client
-   1. Install fswatch (see [here](http://stackoverflow.com/questions/1515730/is-there-a-command-like-watch-or-inotifywait-on-the-mac))
-   1. Add your user to sudoers without a password requirement (see [here](https://askubuntu.com/questions/168461/how-do-i-sudo-without-having-to-enter-my-password))
-1. Development Host(s) Requirements
-   1. Install rsync, ssh server and docker
-   1. Add your user to sudoers without a password requirement (see [here](https://askubuntu.com/questions/168461/how-do-i-sudo-without-having-to-enter-my-password))
-1. Other
-   1. Before you start you need to make sure that you can use ssh with  
-      certificates to login from the editing machine to the development host(s). 
-      Do not add the containers to .ssh/config or /etc/hosts, 
-      the tool will take care of this.
-   1. You also need to create your docker container image(s). 
-      The image(s) will contain your 
-      development environment. Evertyhing but your IDE should be there.
-      Here are some suggestions to follow to make images compatible with 
-      sd<sup>2</sup>:
-       1. The container will run as a daemon so put a `sleep infinity` at the end 
-       so it does not exit.
-       1. You will want to access inside the container so install ssh server 
-          and maybe vnc and/or screeen.
-       1. Install rsync if you plan to copy workspaces into the container.   
-       1. Your container (DC) will run using the same username/id you have on the 
-       host (DH). It is a good idea to use a script that relocates exising users 
-       in the container os that have the same userid with the one you have 
-       on the host (see [this](https://raw.githubusercontent.com/gae123/sd2/master/examples/entrypoint.sh).
        
 ## How to set it up
 sd2 relies on one or more configuration files that define your DHs, your conainers/images 
@@ -106,19 +71,24 @@ from the [releases](https://github.com/gae123/sd2/releases) section. Put it
 somewhere so that it is in your PATH, create your configuration file that 
 describes your environment, open a terminal and run sd2 from the command line.
 
+Make sure you read [the detailed directions](build/how-to-install.md)
+
 ## Configuration 
 
 **Location**: When sd2 starts it reads its configuration from `~/.sd2/config.yaml` 
 (or in `$SD2_CONFIG_DIR/config.yaml` if this variable is set). 
 
-
 **Syntax**: This file
-has three main sections. One that describes the DHs, one that describes the 
-containers images, and one that describes the workspaces that you want to be
+has four main sections. One that describes the DHs, one that describes the 
+containers images, one that describe containers
+ and one that describes the workspaces that you want to be
 synced into the DHs. There is a json schema for the file that you can find
 [here](https://raw.githubusercontent.com/gae123/sd2/master/src/lib/sd2/config_schema.json).
-If there are multiple configuration files, multiple sections with the same
-name can be there.
+There can be multiple configuration files, multiple sections with the same
+name can be there. For instance if you work on project foo and bar with different
+stacks you can have three files in the directory: `config.yaml` for the common
+things (e.g. shared hosts), `foo-config.yaml` for the foo project and 
+`bar-config.yaml` for the bar project. `sd2` will parse all of them.
 
 **Examples**
 A very simple configuration file is shown 
@@ -199,7 +169,7 @@ way to separate the configuration of unrelated projects.
 ## Troubleshooting
 1. Start the command as `sd2 --showconfig`. It will show the config file
 as it is after substitutions and will exit.
-1. Start the commaind as following `sd2 -l debug` to see what it is doing
+1. Start the daemon by running `sd2`. You can see logs running `sd2 logs`
 1. Start the command as `sd2 --showschema`. It will show the json schema file.
 1. Try to ssh to the DHs. You should be able to ssh to any of them from a 
 terminal in your EH.
@@ -214,7 +184,8 @@ way to get shell access to the container.
 ## FAQ
 1. When I run docker directly on the MacOS can I just mount the MacOS 
 file system on the container?  
-This will work but in most cases, it will have severe performance implications. 
+This will work but in most cases, but 
+it will have severe performance implications for many common use cases. 
 You can read more about the issue [here](https://forums.docker.com/t/file-access-in-mounted-volumes-extremely-slow-cpu-bound/8076/174).
 1. Is sd2 secure when the development host is across the internet?  
 sd2 always uses ssh to communicate from the editing machine to the 
