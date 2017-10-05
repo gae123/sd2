@@ -149,14 +149,14 @@ def create_start_docker_if_needed(host_name, container_host_name, dryrun):
     else:
         create_new_one = myhosts.is_container_enabled(container_host_name)
         print(container_host_name + 
-            ': Not Found. ({})'.format(create_new_one))
+            ': Not Found. ({})'.format('NOT OK' if create_new_one else 'OK'))
     if create_new_one:
         print(container_host_name + ' Creating a new one...')
         create_start_docker(host_name, container_host_name, dryrun)
         rr = True
-    cmd = 'sudo docker exec -i -t {} su - {}'.format(
-        container_host_name, os.getenv('USER'))
-    print "Attach by running: '{}'".format(cmd)
+        cmd = 'sudo docker exec -i -t {} su - {}'.format(
+            container_host_name, os.getenv('USER'))
+        print "Attach by running: '{}'".format(cmd)
     return rr
     
 
@@ -237,7 +237,7 @@ def add_argument_parsing(subparsers):
         "containers", nargs="*",
         help="containers to start, leave it empty and pass --all to restart all of them",
         default='')
-    parser_cont.set_defaults(func=main)
+    parser_cont.set_defaults(func=main, logging=True)
 
 
 

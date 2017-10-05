@@ -71,7 +71,15 @@ def deal_with_changed_file(wi, fpath, args):
                 if args.dryrun:
                     cmd = 'echo ' + cmd
                 logging.info(cmd)
-                subprocess.Popen(cmd, shell=True)
+                try:
+                    output = subprocess.check_output(cmd, 
+                        stderr=subprocess.STDOUT,
+                        close_fds=ON_POSIX,
+                        shell=True)
+                    if output:
+                        logging.info("SCP: {}".format(output))
+                except subprocess.CalledProcessError as ex:
+                    logging.info("SCP:ERR %s", ex)
         else:
             workspace_instance_sync(wi, args)
 

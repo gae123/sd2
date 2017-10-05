@@ -11,17 +11,22 @@ import time
 import sd2
 import json
 import datetime
+import daemon
+import daemon.pidfile
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
 g_workspaces = []
 g_args = None
 
+g_pidfile = '/var/run/sd2/sd2.pid'
+g_logfile = '/var/log/sd2/sd2.log'
 
 ################################################################################
 
 class RestartEcxeption(Exception):
     pass
+
 
 def init():
     logging.info("SD2INIT:EE")
@@ -85,15 +90,29 @@ def main():
             dockers.shutdown()
 
 
-def daemon(g_args):
-    from sd2.ssh_connections import SSHConnections
-    global g_ssh_connections
-    g_ssh_connections = SSHConnections(g_args)
-    while True:
-        try:
-            main()
-        except RestartEcxeption:
-            continue
+def sd2_daemon(g_args):
+    if os.path.isfile(g_pidfile):
+        print "Exiting because sd2 is already running..."
+        sys.exit(0)
+    init()
+    os.system("sudo mkdir -p /var/run/sd2")
+    os.system("sudo chmod 777 /var/run/sd2")
+    stdout = open("/var/run/sd2/sd2.stdout", 'w')
+    stderr = open("/var/run/sd2/sd2.stderr", 'w')
+    with daemon.DaemonContext(
+        stdout=stdout,
+        stderr=stderr,
+        pidfile=daemon.pidfile.PIDLockFile(g_pidfile)
+        ):
+        setup_logging()
+        from sd2.ssh_connections import SSHConnections
+        global g_ssh_connections
+        g_ssh_connections = SSHConnections(g_args)
+        while True:
+            try:
+                main()
+            except RestartEcxeption:
+                continue
             
 def add_argument_parsing(subparsers):
     parser_run = subparsers.add_parser(
@@ -106,16 +125,44 @@ def add_argument_parsing(subparsers):
     parser_run.add_argument("hosts", nargs="*",
                             help="host to sync, leave it empty to include all hosts",
                             default='')
-    parser_run.set_defaults(func=daemon)
+    parser_run.set_defaults(func=sd2_daemon, logging=True)
+
+
+
+def add_stop_argument_parsing(subparsers):
+    def sd2_stop_daemon(g_args):
+        if os.path.isfile(g_pidfile):
+            rr = os.system("kill `cat {}`".format(g_pidfile))
+        else:
+            print "sd2 does not appear to be running"
+            rr = 0
+        sys.exit(rr)
+    parser_run = subparsers.add_parser(
+        'halt',
+        description="Stop the daemon"
+    )
+    parser_run.set_defaults(func=sd2_stop_daemon, logging=False)
     
- 
-def setup_logging(parser):
+
+def add_logs_argument_parsing(subparsers):
+    def sd2_logs(g_args):
+        print "Logs are in " + g_logfile
+        os.system("tail -f {}".format(g_logfile))
+        sys.exit(0)
+
+    parser_run = subparsers.add_parser(
+        'logs',
+        description="Show the logs file location"
+    )
+    parser_run.set_defaults(func=sd2_logs, logging=False)
+
+def setup_logging():
     import logging.handlers
     global g_args
-    g_args = parser.parse_args(sys.argv[1:])
 
-    logDir = '/tmp'
-    os.system("mkdir -p '{}'".format(logDir))
+    logDir = '/var/log/sd2'
+    os.system("sudo mkdir -p '{}'".format(logDir))
+    os.system("sudo chmod 777 '{}'".format(logDir))
     fileName = 'sd2'
     logFilePath = "{0}/{1}.log".format(logDir, fileName) 
     # if (os.path.exists(logFilePath)):
@@ -131,23 +178,20 @@ def setup_logging(parser):
     }[g_args.level]
     
     logFormatter = logging.Formatter(
-     '%(asctime)s %(levelname)-8s %(message)s', '%Y-%m-%d %H:%M:%S')
+        '%(asctime)s %(levelname)-8s %(message)s', '%Y-%m-%d %H:%M:%S')
     rootLogger = logging.getLogger()
     rootLogger.setLevel(logging.DEBUG)
     
-    # TODO /tmp is probably not the right place for this, at a minimum drive it
-    # from an environment variable
-    #logDir = os.path.join(os.getenv('HOME'), '.sd2')
     fileHandler = logging.handlers.TimedRotatingFileHandler(
                                 logFilePath, when='D', backupCount=60)
     fileHandler.setFormatter(logFormatter)
-    fileHandler.setLevel(logging.DEBUG)
+    fileHandler.setLevel(level)
     rootLogger.addHandler(fileHandler)
     
-    consoleHandler = logging.StreamHandler()
-    consoleHandler.setFormatter(logFormatter)
-    consoleHandler.setLevel(level)
-    rootLogger.addHandler(consoleHandler)
+    # consoleHandler = logging.StreamHandler()
+    # consoleHandler.setFormatter(logFormatter)
+    # consoleHandler.setLevel(level)
+    # rootLogger.addHandler(consoleHandler)
     
 
 def parse_arguments():
@@ -158,32 +202,34 @@ def parse_arguments():
         )
     )
     parser.add_argument('--version', '-v', action="store_true", default=False)
-    parser.add_argument('--level', '-l', default='error',
-                        help="Pass debug,info or error to set the debug level")
+    parser.add_argument('--level', '-l', default='debug',
+                        help="Pass debug,info or error to set the debug level logged")
     parser.add_argument('--dryrun', '-n', action="store_true", default=False)
     parser.add_argument('--showschema', action="store_true", default=False,
                         help="Just show the JSON schema of the configuration file and exit")
     parser.add_argument('--showconfig', action="store_true", default=False,
                         help="Just show config and exit")
-    # parser.add_argument('--nointf', action="store_true", default=False,
-    #                     help="Do not generate interfaces on hosts")
     
     subparsers = parser.add_subparsers()
     
     sd2.gen_all.add_argument_parsing(subparsers)
     sd2.sd2cont.add_argument_parsing(subparsers)
     add_argument_parsing(subparsers)
+    add_stop_argument_parsing(subparsers)
+    add_logs_argument_parsing(subparsers)
     
     # Add 'run' as the default argument if it is missing. This is hacky but
     # the best I can think of right now.
     found = False
     for arg in sys.argv:
-        if arg in ['cont', 'init', 'run']:
+        if arg in ['cont', 'init', 'run', 'halt', 'logs']:
             found = True
     if not found:
         sys.argv.append('run')
     
-    setup_logging(parser)
+    g_args = parser.parse_args(sys.argv[1:])
+    if g_args.logging:
+        setup_logging()
 
     sd2.sd2cont.check_for_prereqs()
 

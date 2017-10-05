@@ -17,4 +17,4 @@ def add_argument_parsing(subparsers):
     parser_init = subparsers.add_parser(
         'init',
         description='Read the config file and initialize ')
-    parser_init.set_defaults(func=gen_all)
+    parser_init.set_defaults(func=gen_all, logging=True)
