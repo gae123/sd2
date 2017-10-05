@@ -235,7 +235,8 @@ multiple containers to access the same repository.
     already in the files.
 1. What IP addresses do the containers use?  
     The system automatically assigns addresses in the 172.30.X.X private address
-    range. It uses the 3rd octet for the DH and the 4 octet for the containers.
+    range. It uses a mini json cache in ~/.config/.sd2-cidr-db to give the 
+    same IP every time. You can override these with environment variables.
 1. Can I have more than one configuration file?
     sd2 reads all the files in `~/.sd2` ending in -config.yaml so it is possible
     and highly encouraged if you work in multiple projects

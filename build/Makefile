@@ -1,7 +1,7 @@
 #############################################################################
 # Copyright (c) 2017 SiteWare Corp. All right reserved
 #############################################################################
-SD2_VERSION := 0.9.72
+SD2_VERSION := 0.9.73
 
 TOP := $(realpath ..)
 SD2OS := $(shell uname)
@@ -36,6 +36,10 @@ build:
 	 pyinstaller -F $(TOP)/src/bin/sd2 && \
 	 cp dist/sd2 dist/sd2-$(SD2OS))
 
+test: build
+	(cd $(TOP)/src && \
+	 pytest)
+
 $(OUT)/.lint: $(PYTHON_SOURCES)
 	pylint -E $(PYTHON_SOURCES)
 	touch $@
@@ -59,7 +63,7 @@ $(TOP)/src/lib/sd2/sd2_config_schema.py: $(TOP)/src/lib/sd2/sd2_config_schema.js
 	echo "'''" >> $@
 	chmod -w $@
 
-push: all
+push: test all
 	(git tag -d $(SD2_VERSION) && git push origin :refs/tags/$(SD2_VERSION)) || true
 	git tag $(SD2_VERSION)
 	git push && git push --tags

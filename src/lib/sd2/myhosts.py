@@ -4,6 +4,7 @@
 #############################################################################
 import sys
 import logging
+from . import addresses
  
 initialized = False
 config_dct = {}
@@ -27,16 +28,10 @@ def init(a_config_dct=None):
     hostsdict = {x['name']: x for x in hosts}
     
     for ii,host in enumerate(hosts):
-        base = host.get('base')
         host_name = host['name']
         host['enabled'] = host.get('enabled', True) and not host.get('disabled', False)
         config_containers = host.get('containers', [])
-        if base is None and config_containers and not host.get('abstract'):
-            msg = "Config Error: Non abstract Host {} has containers but not base\n"
-            sys.stderr.write(msg.format(host_name))
-            sys.exit(1)
-        if base is not None:
-            host['local-ip'] = "172.30.{}.100".format(base)
+        host['local-ip'] = addresses.cidr_db.get_text_address_for_host(host_name)
         containers = []
         for ii, container in enumerate(config_containers):
             image_name = container if isinstance(container, basestring) else \
@@ -44,12 +39,13 @@ def init(a_config_dct=None):
             enabled = host['enabled']
             if isinstance(container, dict) and enabled:
                 enabled = container.get('enabled', True) and not container.get('disabled', False)
-            cont = {
-                'ip': "172.30.{}.{}".format(base, 101 + ii),
-                'image': imagesdict[image_name],
-                'name': "{}-{}".format(host_name, (
+            container_host_name = "{}-{}".format(host_name, (
                     ii if isinstance(container, basestring) else str(container.get(
-                    'name', ii)))),
+                    'name', ii))))
+            cont = {
+                'ip': addresses.cidr_db.get_text_address_for_host(container_host_name),
+                'image': imagesdict[image_name],
+                'name': container_host_name,
                 'remove_if_version_mismatch': False if isinstance(container, basestring) 
                                 else container.get('remove_if_version_mismatch', False),
                 'remove_if_running_when_disabled': (False if isinstance(container, basestring) 

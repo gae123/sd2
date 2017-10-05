@@ -7,7 +7,6 @@ images:
 hosts:
   - name: paros
     IdentityFile: ~${USER}/.ssh/id_rsa-2015
-    base: 1     # Used in the IP address of the containers, unique for each host
     containers:
      - "ubuntu1604"    # This will be called paros-0
      - "ubuntu1604"    # This will be called paros-1

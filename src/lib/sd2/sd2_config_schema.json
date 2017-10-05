@@ -41,10 +41,6 @@
       "additionalProperties": false,
       "properties": {
         "name": {"type": "string"},
-        "base": {
-          "description": "An optional unique per host number that is used for the IP address",
-          "type": "integer"
-        },
         "abstract": {"type": "boolean"},
         "extends": {"type": "string"},
         "sudo_ssh": {
