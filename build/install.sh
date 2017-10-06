@@ -26,6 +26,7 @@ fi
 pip install jinja2
 sudo pip install pyinstaller
 pip install pyyaml
+pip install python-daemon
 pip install jsonschema
 pip install pylint
 pip install pytest
