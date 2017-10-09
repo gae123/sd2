@@ -54,6 +54,12 @@ def init(a_config_dct=None):
                 'enabled': enabled
             }
             containers.append(cont)
+            if containersdict.get(cont['name']):
+                msg = "Container with name {}:{} is defined more that once.".format(
+                                                    host_name, cont['name'])
+                print(msg)
+                logging.critical(msg)
+                sys.exit(1) 
             containersdict[cont['name']] = cont
         host['containers'] = containers
     initialized = True
