@@ -16,6 +16,12 @@ hosts = None
 def init(a_config_dct=None):
     global config_dct, containersdict,hostsdict, imagesdict, initialized, hosts
     from . import config
+    initialized = False
+    config_dct = {}
+    imagesdict = {}
+    containersdict = {}
+    hostsdict = {}
+    hosts = None
     if a_config_dct is None:
         config_dct = config.read_config()
     else:
