@@ -117,6 +117,12 @@ def get_our_ssh_config():
 
 
 def gen_ssh_config():
+    if not os.path.exists(g_ssh_config_path):
+        ssh_config_dir = os.path.dirname(g_ssh_config_path)
+        if not os.path.exists(ssh_config_dir):
+            os.system("mkdir -p {}".format(ssh_config_dir))
+            os.system("chmod 700 {}".format(ssh_config_dir))
+        os.system("touch {}".format(g_ssh_config_path))
     fr = FileRewriter(g_ssh_config_path)
     before, after = fr.read_config()
     rr = get_our_ssh_config()
