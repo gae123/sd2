@@ -2,8 +2,10 @@
 
 1. Download the executable for your platform, rename it to sd2 and save it somewhere on your
 Editing Host (EH). (no need to donwload the source code)
-1. Create the configuration files in ~/.sd2
-1. Run the program in a terminal as 'sd2'. The program will run as a daemon.
+1. Create the configuration files in ~/.sd2 See the README in the first
+   page for details.
+1. Run the program in a terminal as 'sd2'. The program will run as a daemon. You 
+   might see something like this `chown: /var/folders/dk/3243zrtd0538m_l8pmx5hrfh0000gn/T/tmpkvWdk6: Operation not permitted` Just ignore it.
     1. You can stop it with `sd2 halt`
     1. You can see logs with `sd2 logs`
     1. You can see the configuration used after the expansions with `sd2 --showconfig`
