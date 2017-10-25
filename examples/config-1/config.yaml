@@ -9,13 +9,15 @@ images:
       - name: FOO
         value: bar
 
-
 hosts:
   - name: paros
+    # You need to create a key pair, this is the public key,the private
+    # key needs to be in ~/.ssh/authorized_keys
     IdentityFile: ~${USER}/.ssh/id_rsa-2015
     enabled: yes  
 
-    containers:
-     - "ubuntu1604"   # This container will be called paros-0
-     - name: "ubuntu1604"   # This container will be called paros-1
-       enabled: yes
+containers:
+  - name: "1"  # This container will be called paros-1
+    hostname: "paros"
+    imagename: "ubuntu1604"   
+    enabled: yes

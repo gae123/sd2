@@ -11,13 +11,23 @@ images:
 
 hosts:
   - name: paros
+    enabled: yes
     IdentityFile: ~${USER}/.ssh/id_rsa-2015
 
-    containers:
-     - "ubuntu1404"   # paros-0
-     - "ubuntu1404"   # paros-1
-     - "ubuntu1604"   # paros-2
-     - "ubuntu1604"   # paros-3
+
+containers:
+     - name: "0"   # paros-0
+       hostname: "paros"
+       imagename: "ubuntu1404"   
+     - name: "1"
+       hostname: "paros"
+       imagename: "ubuntu1404"   # paros-1
+     - name: "2"
+       hostname: "paros"
+       imagename: "ubuntu1604"   # paros-2
+     - name: "3"
+       hostname: "paros"
+       imagename: "ubuntu1604"   # paros-3
 
 
 workspaces:
@@ -47,7 +57,8 @@ workspaces:
     source_root: ${HOME}/projects/${name} # ${name} will be 0.sd2
     dest_root: /tmp/${name}
     targets:
-      - paros-0
+      - name: paros-0
+        enabled: true
       - name: paros-2
         enabled: false
   # Another actual workspace
@@ -56,5 +67,7 @@ workspaces:
     source_root: ${HOME}/projects/${name} # ${name} will be 1.sd2
     dest_root: /tmp/${name}
     targets:
-      - paros-1
-      - paros-3
+      - name: paros-1
+        enabled: true
+      - name: paros-3
+        enabled: true

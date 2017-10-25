@@ -4,12 +4,22 @@ images:
     docker_name: pako/ubuntu1604-ssh-rsync:1.0
     extra_flags: --entrypoint /home/${USER}/projects/0.sd2/examples/entrypoint.sh
 
+
 hosts:
   - name: paros
     IdentityFile: ~${USER}/.ssh/id_rsa-2015
-    containers:
-     - "ubuntu1604"    # This will be called paros-0
-     - "ubuntu1604"    # This will be called paros-1
+
+    
+containers:
+     - name: "0"    # This will be called paros-0
+       hostname: paros
+       imagename: "ubuntu1604"    
+       enabled: yes
+     - name: "1"    # This will be called paros-1
+       hostname: paros
+       imagename: "ubuntu1604"    
+       enabled: yes
+
 
 workspaces:
   # An abstract workspace shared by all my workspaces
@@ -37,11 +47,13 @@ workspaces:
     source_root: ${HOME}/projects/${name} # ${name} will be 0.sd2
     dest_root: /tmp/${name}
     targets:
-      - paros-0
+      - name: paros-0
+        enabled: yes
   # Another concrete workspace
   - name: 1.sd2
     extends: sd2
     source_root: ${HOME}/projects/${name} # ${name} will be 1.sd2
     dest_root: /tmp/${name}
     targets:
-      - paros-1
+      - name: paros-1
+        enabled: yes
