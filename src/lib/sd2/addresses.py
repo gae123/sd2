@@ -12,6 +12,8 @@ import time
 import random
 import logging
 
+g_root_dir = os.getenv('SD2_CONFIG_DIR', os.path.join(os.getenv('HOME'), '.sd2'))
+
 our_version = 1
 
 def num_to_string_ip(address):
@@ -105,8 +107,13 @@ class Addressing(object):
         return num_to_string_ip(address)
 
 
-os.system("mkdir -p ~/.config")
-path = os.getenv('SD2_CIDR_DB_PATH', os.path.join(os.getenv('HOME'), '.config', '.sd2-cidr-db'))
+# Backwards compatibility
+old_default_path = os.path.join(os.getenv('HOME'), '.config', '.sd2-cidr-db')
+new_default_path = os.path.join(g_root_dir, '.sd2-cidr-db')
+if (os.path.exists(old_default_path)) and not os.path.exists(new_default_path):
+    os.system("mv {} {}", old_default_path, new_default_path)
+
+path = os.getenv('SD2_CIDR_DB_PATH', new_default_path)
 mask = os.getenv('SD2_CIDR_RPEFIX_MASK', 0xAC1E0000) # 172.30.x.x
 bits = os.getenv('SD2_CIDR_RPEFIX_BITS', 16)
 cidr_db = Addressing(path, mask, bits)
