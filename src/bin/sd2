@@ -192,14 +192,18 @@ def setup_logging():
     # consoleHandler.setFormatter(logFormatter)
     # consoleHandler.setLevel(level)
     # rootLogger.addHandler(consoleHandler)
-    
+
+intro = ''.join('''The tool will parse the configuration files ending
+in config.yaml in {} and will run as  
+a daemon. Set the env variable SD2_CONFIG_DIR to look for the 
+configuration files in another directory.
+'''.split('\n'))    
 
 def parse_arguments():
     global g_args
     parser = argparse.ArgumentParser(
-        description="The tool will parse the configuration file in {} and runs as a daemon".format(
-            os.getenv('SD2_CONFIG_DIR', os.path.join(os.getenv('HOME'), '.sd2'))
-        )
+        description=intro.format(
+            os.getenv('SD2_CONFIG_DIR', os.path.join(os.getenv('HOME'), '.sd2')))
     )
     parser.add_argument('--version', '-v', action="store_true", default=False)
     parser.add_argument('--level', '-l', default='debug',
