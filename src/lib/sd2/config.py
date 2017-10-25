@@ -11,6 +11,7 @@ import yaml
 import string
 import sys
 import jsonschema
+import six
 
 __all__=('config_dct')
 
@@ -44,18 +45,18 @@ def process_expansions(dct):
     def expand(val, dct):
         if isinstance(val, (long,int,bool)):
             return val
-        if isinstance(val, basestring):
+        if isinstance(val, six.string_types):
             dct2 = copy.deepcopy(dct)
-            for env_key, env_val in os.environ.iteritems():
+            for env_key, env_val in six.iteritems(os.environ):
                 dct2[env_key] = env_val
             return  string.Template(val).safe_substitute(dct2)
         if isinstance(val, list):
             return [expand(x, dct) for x in val]
         if isinstance(val, dict):
-            return {k: expand(v,dct) for k,v in val.iteritems()}
+            return {k: expand(v,val) for k,v in six.iteritems(val)}
         return val
 
-    for key,val in dct.iteritems():
+    for key,val in six.iteritems(dct):
         nval = expand(val, dct)
         dct[key] = nval
 
