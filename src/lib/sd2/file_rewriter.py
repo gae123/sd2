@@ -51,10 +51,11 @@ class FileRewriter(object):
             'sudo' if sudo else '',
             path
             ))
-        os.system("{} chown root {}".format(
-            'sudo' if sudo else '',
-            path
-            ))
+        if sudo:
+            os.system("{} chown root {}".format(
+                'sudo' if sudo else '',
+                path
+                ))
         os.system("{} mv {} {}.bk".format(
             'sudo' if sudo else '',
             self.path, self.path))

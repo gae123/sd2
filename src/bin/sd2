@@ -93,12 +93,13 @@ def main():
 def sd2_daemon(g_args):
     init()
     if os.path.isfile(g_pidfile):
-        print "Exiting because sd2 is already running..."
+        print("Exiting because sd2 is already running...")
         sys.exit(0)
     os.system("sudo mkdir -p /var/run/sd2")
     os.system("sudo chmod 777 /var/run/sd2")
     stdout = open("/var/run/sd2/sd2.stdout", 'w')
     stderr = open("/var/run/sd2/sd2.stderr", 'w')
+    print("Starting sd2 as daemon, use 'sd2 halt' to stop it, 'sd2 logs' to view its logs")
     with daemon.DaemonContext(
         stdout=stdout,
         stderr=stderr,
