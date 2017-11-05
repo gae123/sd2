@@ -5,6 +5,7 @@
 
 import os
 import sys
+import six
 
 import sd2
 from .file_rewriter import FileRewriter
@@ -56,7 +57,7 @@ def generate_for_host(host):
                 for match in matches:
                     rr += 'Match originalhost {hostname} exec "{match[condition]}"\n'.format(
                         hostname=hostname, match=match)
-                    for key in match.keys():
+                    for key in six.viewkeys(match):
                         if not key in ssh_option_names:
                             continue
                         rr += '    {key} {value}\n'.format(key=key,
@@ -64,7 +65,7 @@ def generate_for_host(host):
                 rr += '\n'
     
         rr += 'host {}\n'.format(host['name'])
-        for key, val in host.iteritems():
+        for key, val in six.iteritems(host):
             if not key in ssh_option_names:
                 continue
             if not isinstance(val, (list, tuple)):
@@ -75,9 +76,9 @@ def generate_for_host(host):
     
         if host.get('containers'):
             rr += 'host {}-ports\n'.format(host['name'])
-            if not 'HostName' in host.keys():
+            if not 'HostName' in six.viewkeys(host):
                 host['HostName'] = host['name']
-            for key, val in host.iteritems():
+            for key, val in six.iteritems(host):
                 if not key in ssh_option_names + ['LocalForward']:
                     continue
                 if not isinstance(val, (list, tuple)):
@@ -96,7 +97,7 @@ def generate_for_host(host):
 
     for cont in host.get('containers', []):
         rr += container_entry_template.format(**locals())
-        for key, val in host.iteritems():
+        for key, val in six.iteritems(host):
             if key in container_ssh_option_names:
                 rr += '    {} {}\n'.format(key, val)
     return rr

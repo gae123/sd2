@@ -32,12 +32,12 @@ def init():
     logging.info("SD2INIT:EE")
     global g_workspaces
     if g_args.showschema:
-        print sd2.sd2_config_schema
+        print(sd2.sd2_config_schema)
         sys.exit(0)
     config_dct = sd2.read_config()
     if g_args.showconfig:
         ss = json.dumps(config_dct, indent=4)
-        print ss
+        print(ss)
         sys.exit(0)
     sd2.myhosts.init(config_dct)
     sd2.gen_all.gen_all()
@@ -135,7 +135,7 @@ def add_stop_argument_parsing(subparsers):
         if os.path.isfile(g_pidfile):
             rr = os.system("kill `cat {}`".format(g_pidfile))
         else:
-            print "sd2 does not appear to be running"
+            print("sd2 does not appear to be running")
             rr = 0
         sys.exit(rr)
     parser_run = subparsers.add_parser(
@@ -147,7 +147,7 @@ def add_stop_argument_parsing(subparsers):
 
 def add_logs_argument_parsing(subparsers):
     def sd2_logs(g_args):
-        print "Logs are in " + g_logfile
+        print("Logs are in " + g_logfile)
         os.system("tail -f {}".format(g_logfile))
         sys.exit(0)
 
@@ -239,7 +239,7 @@ def parse_arguments():
     sd2.sd2cont.check_for_prereqs()
 
     if g_args.version:
-        print sd2.__version__
+        print(sd2.__version__)
         sys.exit(0)
         
     logging.info("---------------sd2 %s-------------------", sys.argv)

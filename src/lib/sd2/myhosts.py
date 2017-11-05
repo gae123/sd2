@@ -4,6 +4,7 @@
 #############################################################################
 import sys
 import logging
+import six
 from . import addresses
  
 initialized = False
@@ -40,21 +41,22 @@ def init(a_config_dct=None):
         host['local-ip'] = addresses.cidr_db.get_text_address_for_host(host_name)
         containers = []
         for ii, container in enumerate(config_containers):
-            image_name = container if isinstance(container, basestring) else \
+            image_name = container if isinstance(container, six.string_types) else \
                         container['imagename']
             enabled = host['enabled']
             if isinstance(container, dict) and enabled:
                 enabled = container.get('enabled', True) and not container.get('disabled', False)
             container_host_name = "{}-{}".format(host_name, (
-                    ii if isinstance(container, basestring) else str(container.get(
+                    ii if isinstance(container, six.string_types) else str(container.get(
                     'name', ii))))
             cont = {
                 'ip': addresses.cidr_db.get_text_address_for_host(container_host_name),
                 'image': imagesdict[image_name],
                 'name': container_host_name,
-                'remove_if_version_mismatch': False if isinstance(container, basestring) 
+                'remove_if_version_mismatch': False if isinstance(container, six.string_types) 
                                 else container.get('remove_if_version_mismatch', False),
-                'remove_if_running_when_disabled': (False if isinstance(container, basestring) 
+                'remove_if_running_when_disabled': (False if 
+                                        isinstance(container, six.string_types) 
                           else container.get('remove_if_running_when_disabled', False)),
                 'host': host, # The host where the container lives
                 'enabled': enabled
@@ -113,7 +115,7 @@ def get_container_remove_flag(containerName):
     if not initialized:
         init()
     cont = containersdict.get(containerName)
-    print '*******'  + containerName + " " + str(cont)
+    print(('*******'  + containerName + " " + str(cont)))
     return cont.get('remove_if_running_when_disabled', False)
 
 def get_container_docker_image(containerName):
@@ -150,7 +152,7 @@ def is_disabled(hostname):
     return not is_enabled(hostname)
 
 def is_enabled(hostname):
-    assert isinstance(hostname, basestring)
+    assert isinstance(hostname, six.string_types)
     if not initialized:
         init()
     host = hostsdict.get(hostname)

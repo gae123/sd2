@@ -11,6 +11,7 @@ import datetime
 import copy
 import json
 import hashlib
+import six
 
 from .util import kill_subprocess_process
 from . import myhosts
@@ -68,7 +69,7 @@ class SSHConnections(Connections):
                     },
                     '_digest': digest(host)
                 }
-        for name,host in previous_hosts_to_ssh.iteritems():
+        for name,host in six.iteritems(previous_hosts_to_ssh):
             if (self.hosts_to_ssh.get(name) and  
                 self.hosts_to_ssh.get(name)['_digest'] == host['_digest']):
                 self.hosts_to_ssh.get(name)['ssh'] = host['ssh']
@@ -79,7 +80,7 @@ class SSHConnections(Connections):
             kill_subprocess_process(proc, "SSH {}".format(host['name']))    
 
     def poll(self):
-        for host in self.hosts_to_ssh.values():
+        for host in six.viewvalues(self.hosts_to_ssh):
             if host['ssh']['proc']:
                 host['ssh']['proc'].poll()
                 while (True):

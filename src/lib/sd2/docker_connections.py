@@ -8,6 +8,7 @@ import datetime
 import fcntl
 import subprocess
 import os
+import six
 
 from .util import kill_subprocess_process
 from .connections import Connections
@@ -100,11 +101,11 @@ class DockerConnections(Connections):
         host['need_connection'] = 0
 
     def poll(self):
-        for host in self.host_to_contact.values():
+        for host in six.viewvalues(self.host_to_contact):
             self.handle_host(host)
 
     def shutdown(self):
-        for host in self.host_to_contact.values():
+        for host in six.viewvalues(self.host_to_contact):
             proc = host.get('proc')
             kill_subprocess_process(
                 proc,

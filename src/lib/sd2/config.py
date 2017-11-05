@@ -17,7 +17,7 @@ __all__=('config_dct')
 
 g_root_dir = os.getenv('SD2_CONFIG_DIR', os.path.join(os.getenv('HOME'), '.sd2'))
 
-from sd2_config_schema import sd2_config_schema
+from .sd2_config_schema import sd2_config_schema
 
 def exit_with_error(msg):
     sys.stderr.write(msg)
@@ -43,7 +43,7 @@ def ensure_base(hosts):
 
 def process_expansions(dct):
     def expand(val, dct):
-        if isinstance(val, (long,int,bool)):
+        if isinstance(val, six.integer_types) or isinstance(val, bool):
             return val
         if isinstance(val, six.string_types):
             dct2 = copy.deepcopy(dct)
@@ -128,12 +128,12 @@ def process_inheritance(config_dct, keys):
     def get_processed_dct(tlkey, host, hostsdict):
         rr = {}
         extends = host.get('extends', [])
-        if isinstance(extends, basestring):
+        if isinstance(extends, six.string_types):
             extends = [extends]
         for extend in extends + [host['name']]:
             extend_host = hostsdict[extend]
-            for key in extend_host.keys():
-                if key in rr.keys() and isinstance(rr[key], list):
+            for key in six.viewkeys(extend_host):
+                if key in six.viewkeys(rr) and isinstance(rr[key], list):
                     ehlst = (extend_host[key]
                         if isinstance(extend_host[key], (list,tuple))
                         else [extend_host[key]])
@@ -196,7 +196,7 @@ def validate(config):
     
 
 def _merge_into(config_dct, dct):
-    for key,val in dct.iteritems():
+    for key,val in six.iteritems(dct):
         if isinstance(val, list):
             if not config_dct.get(key):
                 config_dct[key] = []

@@ -8,6 +8,7 @@ import os
 import logging
 import sys
 import subprocess
+import six
 
 from . import util
 
@@ -61,13 +62,13 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
     env.update()
     for var in myhosts.get_container_env(container_host_name):
         env[var['name']] = var['value']
-    for kk,vv in env.iteritems():
+    for kk,vv in six.iteritems(env):
         cmd.append("--env")
         cmd.append("{}={}".format(kk,vv))
 
     cmd.extend(['--workdir', "/home/$USER"])
     cmd.append('--tty')
-    if isinstance(ns_extra_args, basestring):
+    if isinstance(ns_extra_args, six.string_types):
         ns_extra_args.split()
     for arg in ns_extra_args.split():
         cmd.append(arg)
@@ -126,37 +127,37 @@ def create_start_docker_if_needed(host_name, container_host_name, dryrun):
         remove = False
         if (image[0] == myhosts.get_container_docker_image(container_host_name) and
             myhosts.is_container_enabled(container_host_name)):
-            print(container_host_name + ': Found running...')
+            print((container_host_name + ': Found running...'))
         else:
             if (not myhosts.is_container_enabled(container_host_name)):
-                print(container_host_name + ': Found running when it should not.')
+                print((container_host_name + ': Found running when it should not.'))
                 reason = " because it should not be running"
                 remove = myhosts.get_container_remove_flag(container_host_name)
             else:
-                print(container_host_name + ': Found running a different image {}.'.format(image))
+                print((container_host_name + ': Found running a different image {}.'.format(image)))
                 reason = 'to start one with the right image {}'.format(
                         myhosts.get_container_docker_image(container_host_name))
                 remove = myhosts.get_container_upgrade_flag(container_host_name)
         if remove:
-            print('{}: Removing container {}'.format(container_host_name, reason))
+            print(('{}: Removing container {}'.format(container_host_name, reason)))
             remove_container_by_hostname(host_name, container_host_name, dryrun)
             create_new_one = myhosts.is_container_enabled(container_host_name)
     elif running == ['false']:
         create_new_one = myhosts.is_container_enabled(container_host_name)
-        print(container_host_name + 
-            ': Found stopped and removing. ({})'.format(create_new_one))
+        print((container_host_name + 
+            ': Found stopped and removing. ({})'.format(create_new_one)))
         remove_container_by_hostname(host_name, container_host_name, dryrun)
     else:
         create_new_one = myhosts.is_container_enabled(container_host_name)
-        print(container_host_name + 
-            ': Not Found. ({})'.format('NOT OK' if create_new_one else 'OK'))
+        print((container_host_name + 
+            ': Not Found. ({})'.format('NOT OK' if create_new_one else 'OK')))
     if create_new_one:
-        print(container_host_name + ' Creating a new one...')
+        print((container_host_name + ' Creating a new one...'))
         create_start_docker(host_name, container_host_name, dryrun)
         rr = True
         cmd = 'sudo docker exec -i -t {} su - {}'.format(
             container_host_name, os.getenv('USER'))
-        print "Attach by running: '{}'".format(cmd)
+        print(("Attach by running: '{}'".format(cmd)))
     return rr
     
 

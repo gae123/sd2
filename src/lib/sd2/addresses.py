@@ -11,6 +11,7 @@ import datetime
 import time
 import random
 import logging
+import six
 
 g_root_dir = os.getenv('SD2_CONFIG_DIR', os.path.join(os.getenv('HOME'), '.sd2'))
 
@@ -74,7 +75,7 @@ class Addressing(object):
             address = mask | rint
             logging.debug("Considering 0x%x", address)
 
-            for (name,host) in self.db['sd_db_hosts'].iteritems():
+            for (name,host) in six.iteritems(self.db['sd_db_hosts']):
                 if host['sd_db_address'] == address:
                     found = False
                     break
