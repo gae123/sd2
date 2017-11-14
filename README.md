@@ -1,8 +1,8 @@
 [![Build Status](https://travis-ci.org/gae123/sd2.svg?branch=master)](https://travis-ci.org/gae123/sd2)
 
-# sd<sup>2</sup>: Software Defined Software Development™
-The Software Defined Software Development Process aka sd<sup>2</sup> and pronounced 
-sd-square is 
+# sd<sup>2</sup>: Powering Software Defined Software Development™
+The Software Defined Software Development Process aka sd<sup>2</sup> (pronounced 
+sd-square) is 
 a modern Software Development approach. It aims to assist developers 
 who work concurrently with multiple source bases, 
 each with multiple branches and potentially its own technology
@@ -36,11 +36,11 @@ The containers run on hosts that we call development hosts (DH).
     1. Keep multiple development stacks isolated from each other. 
        So now you can work on multiple projects (or releases of the same project) 
     with incompatible stacks at the same time.
-    1. By separating EH and DH/DC you can now version independently your 
+    1. Version independently your 
     EH from your DH & DC. Gone are the days where upgrading to the next version
     of MacOS broke a number of your development projects.
-    1. In a team environment, sd<sup>2</sup> guarrantee that every
-     developer has exactly the 
+    1. Ensure that every
+     developer in the team has exactly the 
     same development stack independent of the editing environment they use.
 1. sd2 uses a combination of tools to make sure that when you change a file on 
 the EH, the file is copied to the destination(s) almost instanteneoulsy.
@@ -48,22 +48,23 @@ the EH, the file is copied to the destination(s) almost instanteneoulsy.
 commit on EHs, there is no chance for accidentally commit generated artifacts.
 1. Modern IDEs are heavyweight and have perofrmance requirements that increase 
 with bigger projects. sd2 uses multiple replicas of the source code so both the 
-IDE and the compilers/transpilers etc can work independently.
+IDE and the compilers/transpilers/toolchain can work independently.
 1. If your source code targets multiple output platforms you can very efficiently 
 simultaneoulsy make a change in one place and have it compile and run in all 
 the target platforms.
 
        
 ## How to set it up
-sd2 relies on one or more configuration files that define your DHs, your conainers/images 
+sd2 relies on one or more configuration files that define your DHs, 
+your conainers/images 
 and your repositories/workspaces. The configuration file needs to be in your 
 home directory 
 under .sd2 (ie ~/.sd2/config.yaml). 
 
 sd2 reads the configuration 
 file and takes all the actions needed to maintain the connections and replicate 
-the repositories in real time as they change in the development machine.
-If you change the configuration file, the daemon automatically will change what 
+the repositories in real time as they change in the EH computer.
+If you change the configuration file, sd2 will automatically change what 
 it is doing to match the new configuration.
 
 You can download the appropriate sd2 binary for your platform 
@@ -80,7 +81,7 @@ Make sure you read [the detailed directions](build/how-to-install.md)
 
 **Syntax**: This file
 has four main sections. One that describes the DHs, one that describes the 
-containers images, one that describe containers
+containers images, one that describes containers
  and one that describes the workspaces that you want to be
 synced into the DHs. There is a json schema for the file that you can find
 [here](https://raw.githubusercontent.com/gae123/sd2/master/src/lib/sd2/config_schema.json).
@@ -143,12 +144,15 @@ variable.
 Furthermore, if there is an executable called ~/.sd2/config,
 the executable is first executed, and its output is treated as json. Then this json
 is parsed and provided as context to the the jinja2 parser. This allows to do 
-very cool initializations.
+very cool initializations based on the source code. For instance, you can have
+each branch use a different image and have the version of the docker image
+in the source code. The executable will make this information to the 
+configuration file and the daemon.
 
 **Inheritance**
 In the workspaces and hosts sections you can create abstract sections that do 
 not describe a workspace or host but provide some key/values pairs that will 
-be inherited later.
+be inherited by other sections.
 
 **Multiple configuration files**
 If the tool finds more that one files in ~/.sd2 that end with `config.yaml`
@@ -190,7 +194,7 @@ You can read more about the issue [here](https://forums.docker.com/t/file-access
 1. Is sd2 secure when the development host is across the internet?  
 sd2 always uses ssh to communicate from the editing machine to the 
 development machine so it is as secure as ssh itself.
-1. Is sd2 slow when my EH is my mac and my DH is in AWS?
+1. Is sd2 slow when my EH is my mac and my DH is in AWS or some other cloud?
   Try it, you will be amazed how fast it is. This is a very common use case
   of sd2.
 1. Why would I ever want to copy the files to the DH instead of the container itself?  
@@ -207,7 +211,7 @@ multiple containers to access the same repository.
 1. What IP addresses do the containers use?  
     The system automatically assigns addresses in the 172.30.X.X private address
     range. It uses a mini json cache in ~/.config/.sd2-cidr-db to give the 
-    same IP every time. You can override these with environment variables.
+    same IP every time. You can override these defaults with environment variables.
 1. Can I have more than one configuration file?
     sd2 reads all the files in `~/.sd2` ending in -config.yaml so it is possible
     and highly encouraged if you work in multiple projects
