@@ -23,12 +23,12 @@ else
     error
 fi
 
-pip install six -U
-pip install jinja2
+sudo pip install six -U
+sudo pip install jinja2
 sudo pip install pyinstaller
-pip install pyyaml
-pip install python-daemon
-pip install jsonschema
-pip install pylint
-pip install pytest
+sudo pip install pyyaml
+sudo pip install python-daemon
+sudo pip install jsonschema
+sudo pip install pylint
+sudo pip install pytest
 type pyinstaller
