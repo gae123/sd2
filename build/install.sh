@@ -23,6 +23,7 @@ else
     error
 fi
 
+pip install six -U
 pip install jinja2
 sudo pip install pyinstaller
 pip install pyyaml
