@@ -106,3 +106,12 @@ def remote_path_exists(remote_host, path):
         cmd = "ssh {} '[ -e {} ] && echo yes'".format(remote_host, path)
         output = subprocess.check_output(cmd, shell=True)
         return output.rstrip() == 'yes'
+
+
+def system(what, cmd):
+    try:
+        logging.info('{} {}'.format(what, cmd))
+        output = subprocess.check_output(cmd, shell=True)
+        logging.info(output)
+    except subprocess.CalledProcessError as ex:
+        logging.error("FAILED: rc=%d '%s'", ex.returncode, ex.output)
