@@ -25,7 +25,7 @@ def slash_ending(path):
 # For rsync --exclude and --include are followed in order. If something is
 def get_rsync_cmd(ws, host, args):
     cmd = ['rsync',
-           '-rlptgoOzv'
+           '-rlptgozv'
            ]
     if args.dryrun:
         cmd.append('--dry-run')
