@@ -179,8 +179,13 @@ def setup_logging():
     }[g_args.level]
     
     logFormatter = logging.Formatter(
-        '%(asctime)s %(levelname)-8s %(message)s', '%Y-%m-%d %H:%M:%S')
+        '%(asctime)s %(process)d %(levelname)-8s %(message)s', '%Y-%m-%d %H:%M:%S')
     rootLogger = logging.getLogger()
+
+    # reset
+    map(rootLogger.removeHandler, list(rootLogger.handlers[:]))
+    map(rootLogger.removeFilter, list(rootLogger.filters[:]))
+
     rootLogger.setLevel(logging.DEBUG)
     
     fileHandler = logging.handlers.TimedRotatingFileHandler(
