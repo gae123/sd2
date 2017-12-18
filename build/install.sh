@@ -6,7 +6,7 @@ if [[ $OS == 'Darwin' ]]; then
 
     # Install some custom requirements on OS X
     # e.g. brew install pyenv-virtualenv
-
+    PIP=pip2
     case "${TOXENV}" in
         py27)
             # Install some custom Python 2.7 requirements on OS X
@@ -19,16 +19,17 @@ elif [[ $OS == 'Linux' ]]; then
     # Install some custom requirements on Linux
     sudo apt-get -y install python python-pip pylint make
     sudo apt-get -y install build-essential python-dev
+    PIP=pip
 else
     error
 fi
 
-sudo pip install six -U
-sudo pip install jinja2
-sudo pip install pyinstaller
-sudo pip install pyyaml
-sudo pip install python-daemon
-sudo pip install jsonschema
-sudo pip install pylint
-sudo pip install pytest
+sudo $PIP install six -U
+sudo $PIP install jinja2
+sudo $PIP install pyinstaller
+sudo $PIP install pyyaml
+sudo $PIP install python-daemon
+sudo $PIP install jsonschema
+sudo $PIP install pylint
+sudo $PIP install pytest
 type pyinstaller
