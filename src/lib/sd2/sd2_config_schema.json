@@ -55,6 +55,7 @@
         "IdentityFile":  {"type": "string"},
         "StrictHostKeyChecking": {"type": "string"},
         "ProxyCommand": {"type": "string"},
+        "ProxyJump": {"type": "string"},
         "AddKeysToAgent": {"type": "string"},
         "UseKeychain": {"type": "string"},
         "UserKnownHostsFile": {"type": "string"},

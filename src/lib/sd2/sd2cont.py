@@ -211,7 +211,7 @@ def main(args):
                     else (args.hostname + '-' + x)) for x in containers]
     ret = do_containers(args.hostname, containers, args.force, args.dryrun)
     
-    logging.debug("sd2cont: Starting %s on %s", containers, args.hostname)
+    logging.debug("sd2cont: Considered %s on %s", containers, args.hostname)
     
     # 0 means it did start one or more
     sys.exit(0 if ret else 1)

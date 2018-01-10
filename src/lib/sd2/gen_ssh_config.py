@@ -25,9 +25,6 @@ host {cont[name]}
 '''
 container_ssh_option_names = [
     'IdentityFile',
-    'ProxyCommand',
-    "PKCS11Provider",
-    'SmartcardDevice',
     "IdentitiesOnly"
 ]
 
@@ -42,6 +39,10 @@ ssh_option_names = [
     'UseKeychain',
     'AddKeysToAgent',
     'ForwardAgent',
+    'ProxyCommand',
+    'ProxyJump',
+    "PKCS11Provider",
+    'SmartcardDevice',
 ]
 ssh_option_names.extend(container_ssh_option_names)
 
