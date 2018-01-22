@@ -10,7 +10,8 @@ import six
 import sd2
 from .file_rewriter import FileRewriter
 
-g_ssh_config_path = os.path.join(os.getenv('HOME'), '.ssh', 'config')
+g_ssh_config_path = os.getenv('SD2_SSH_CONFIG',
+    os.path.join(os.getenv('HOME'), '.ssh', 'config'))
 
 container_entry_template = '''
 

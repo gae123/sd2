@@ -1,0 +1,67 @@
+
+hosts:
+# Mixin inheritance, these are the bases that are not used in .ssh/config
+  - name: base
+    abstract: true
+    User: foo
+    ServerAliveInterval: 60
+    ConnectTimeout: 30
+
+  - name: rsa-2015-no-pwd
+    abstract: true
+    IdentityFile: ~foo/.ssh/id_rsa-2015
+    IdentitiesOnly: "yes"
+
+  - name: krypto-2017
+    abstract: true
+    PKCS11Provider: /usr/local/lib/kr-pkcs11.so
+    ProxyCommand: /usr/local/bin/krssh %h %p
+
+  - name: rsa-2017b-password
+    abstract: true
+    IdentityFile: ~/.ssh/id_rsa-4096-2017b
+    IdentitiesOnly: "yes"
+
+  - name: base-secure-identity
+    abstract: true
+    extends: rsa-2017b-password
+
+  - name: base-insecure-identity
+    abstract: true
+    extends: rsa-2015-no-pwd
+
+  - name: github
+    extends: krypto-2017
+    HostName: github.com
+    User: git
+
+  - name: host1
+    extends:
+      - base-secure-identity
+      - base
+    HostName: foo.bar.com
+    Port: 2230
+
+  - name: mylaptop
+    enabled: no
+    extends:
+      - base
+      - base-insecure-identity
+
+  - name: myvm
+    enabled: yes
+    extends:
+      - base
+      - base-insecure-identity
+    User: ubuntu
+    HostName: 10.1.2.41
+    Port: 22
+
+  - name: aws-host
+    enabled: yes
+    extends:
+      - base 
+      - base-insecure-identity
+    HostName: 104.160.197.213
+    LocalForward: aws-host-local:5902 127.0.0.1:5902
+    
