@@ -17,6 +17,8 @@ def gen_interfaces(hostname=None):
     if hostplatform == 'Darwin':
         cmd = "sudo ifconfig lo0 alias {}"
     elif hostplatform == 'Linux':
+        # See https://unix.stackexchange.com/questions/140231/whats-the-exact-behaviour-of-the-command-ip-address-change
+        # We do replace instead of add so that is succeeds every time
         cmd = "sudo ip addr replace {} dev lo"
     else:
         sys.stderr.write('Unsupported platform ' + hostplatform)

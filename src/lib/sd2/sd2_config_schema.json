@@ -63,6 +63,7 @@
         "ServerAliveInterval": {"type": "integer"},
         "PKCS11Provider": {"type": "string"},
         "SmartcardDevice": {"type": "string"},
+        "HostKeyAlias": {"type": "string"},
         "LocalForward": {
           "type": "array",
           "items": {
