@@ -3,7 +3,7 @@
 set -e   # exit on first error
 
 readonly REPO=ubuntu1604-ssh-rsync
-readonly TAG=1.0
+readonly TAG=1.2
 
 readonly SCRIPTPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 

@@ -1,12 +1,20 @@
 
 images:
   - name: ubuntu1404
-    docker_name: pako/ubuntu1404-ssh-rsync:1.0
+    docker_name: pako/ubuntu1404-ssh-rsync:1.2
     extra_flags: --entrypoint /home/${USER}/projects/0.sd2/examples/entrypoint.sh
+      - name: SD2_EP_SSH
+        value: "1"
+      - name: SD2_EP_TZ
+        value: America/Los_Angeles
 
   - name: ubuntu1604
-    docker_name: pako/ubuntu1604-ssh-rsync:1.0
+    docker_name: pako/ubuntu1604-ssh-rsync:1.2
     extra_flags: --entrypoint /home/${USER}/projects/0.sd2/examples/entrypoint.sh
+      - name: SD2_EP_SSH
+        value: "1"
+      - name: SD2_EP_TZ
+        value: America/Los_Angeles
 
 
 hosts:

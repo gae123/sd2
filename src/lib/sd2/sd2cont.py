@@ -42,10 +42,10 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
     ])
     if myhosts.get_container_mount_home_dir(container_host_name):
         cmd.extend(["--volume", "$HOME:/home/$USER"])
-    if util.remote_path_exists(host_name, '/etc/localtime'):
-        cmd.extend(['--volume', '/etc/localtime:/etc/localtime:ro'])
-    if util.remote_path_exists(host_name, '/etc/timezone'):
-        cmd.extend(['--volume', '/etc/timezone:/etc/timezone:ro'])
+    # if util.remote_path_exists(host_name, '/etc/localtime'):
+    #     cmd.extend(['--volume', '/etc/localtime:/etc/localtime:ro'])
+    # if util.remote_path_exists(host_name, '/etc/timezone'):
+    #     cmd.extend(['--volume', '/etc/timezone:/etc/timezone:ro'])
     if util.remote_path_exists(host_name, '/mnt'):
         cmd.extend(['--volume', '/mnt:/mnt'])
 
