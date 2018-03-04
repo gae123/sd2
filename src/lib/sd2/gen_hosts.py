@@ -19,7 +19,7 @@ def get_our_config():
     return rr
 
 def gen_etc_hosts():
-    fr = FileRewriter('/etc/hosts')
+    fr = FileRewriter(g_etc_hosts)
     before, after = fr.read_config()
     rr = get_our_config()
     fr.write_config(
