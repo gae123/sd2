@@ -16,7 +16,7 @@ g_ssh_config_path = os.getenv('SD2_SSH_CONFIG',
 container_entry_template = '''
 
 host {cont[name]}
-    HostName {cont[name]}
+    HostName {cont[ip]}
     User {host[User]}
     Port {sshport}
     StrictHostKeyChecking no
