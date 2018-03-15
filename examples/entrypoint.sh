@@ -112,7 +112,8 @@ if [ x"$DOCKER_USER_ID" = x"" ]; then
     fi
 fi
 if [ x"$SD2_EP_SSH" = x"1" ]; then
-    service ssh start
+    (type yum &> /dev/null) && service sshd start
+    (type apt-get &> /dev/null) && service ssh start
 fi
 if [ -n "$SD2_EP_TZ" ] ; then
     export TZ=$SD2_EP_TZ
@@ -121,9 +122,9 @@ if [ -n "$SD2_EP_TZ" ] ; then
 fi
 [ -n "$SD2_EP_SCRIPT" ] && $SD2_EP_SCRIPT
 if [ x"$SD2_EP_SHELL" = x"1" ]; then
-    #su - $USER
     sudo -i -u $USER
-else
+fi
+if [ x"$SD2_EP_DAEMON" = x"1" ]; then
     sleep infinity
 fi
 
