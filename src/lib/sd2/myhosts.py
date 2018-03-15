@@ -158,7 +158,8 @@ def is_enabled(hostname):
     host = hostsdict.get(hostname)
     if not host:
         host = containersdict.get(hostname)
-    assert host
+    if not host:
+        return False
     if host['name'] != hostname:
         logging.critical("{} {}".format(host['name'], hostname))
         assert False
