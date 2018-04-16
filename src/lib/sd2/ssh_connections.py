@@ -18,6 +18,7 @@ from . import myhosts
 from . import util
 from . import gen_ssh_config
 from .connections import Connections
+from .host_health import set_host_unhealthy, is_host_healthy
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -89,8 +90,7 @@ class SSHConnections(Connections):
                     except IOError:
                         break
                     if line:
-                        logging.info("SSH {}: {}".format(
-                            host['name'], line))
+                        logging.info("SSH {}: {}".format(host['name'], line))
                     else:
                         break
             # logging.info("%s %s",host, host['sshproc'].returncode if host['sshproc'] else '???')
@@ -100,13 +100,19 @@ class SSHConnections(Connections):
                     log("SSH:RC %s=%s",
                                  host['sshcmd'],
                                  host['ssh']['proc'].returncode)
+                    if host['ssh']['proc'].returncode == 12:
+                        set_host_unhealthy(host['name'])
                     host['ssh']['proc'] = None
                 # Only try to start once every 30 seconds
                 if (host['ssh'].get('last_connection') and
                             (datetime.datetime.now() - host[
                                 'ssh']['last_connection']).seconds < 30):
                     continue
-                logging.info("SSH:START %s", host['sshcmd'])
+                if not is_host_healthy(host['name']):
+                    #logging.info("SSH:SKIP %s", host['sshcmd'])
+                    return
+                else:
+                    logging.info("SSH:START %s", host['sshcmd'])
                 try:
                     host['ssh']['proc'] = subprocess.Popen(
                         host['sshcmd'],

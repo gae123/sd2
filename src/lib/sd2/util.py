@@ -6,6 +6,8 @@ import os
 import logging
 import subprocess
 
+from .host_health import set_host_unhealthy, is_host_healthy
+
 # def resync_reg_exp_match(root, apath, ipath):
 #     if not apath.startswith(root):
 #         return False
@@ -82,8 +84,15 @@ def remote_system(remote_host, cmd):
         cmd = " ".join(cmd)
     if remote_host and not is_localhost(remote_host):
         cmd = "ssh {} '{}'".format(remote_host, cmd)
-    logging.debug("RSCO: " + cmd)
-    return os.system(cmd)
+        if not is_host_healthy(remote_host):
+            logging.debug("RSYS SKIP: " + cmd)
+            return
+    logging.debug("RSYS: " + cmd)
+    rr = os.system(cmd)
+    logging.debug("RSYS: {} rr={}".format(cmd, rr))
+    if rr == 255 and not is_localhost(remote_host):
+        set_host_unhealthy(remote_host)
+    return rr
 
 
 def remote_subprocess_check_output(remote_host, cmd):
@@ -91,10 +100,16 @@ def remote_subprocess_check_output(remote_host, cmd):
         cmd = " ".join(cmd)
     if remote_host and not is_localhost(remote_host):
         cmd = "ssh {} '{}'".format(remote_host, cmd)
-    logging.debug("RSCO: " + cmd)
+    if not is_host_healthy(remote_host):
+        logging.debug("RSCO SKIP: " + cmd)
+        return ''
+    else:
+        logging.debug("RSCO: " + cmd)
     try:
         output = subprocess.check_output(cmd, shell=True)
     except subprocess.CalledProcessError as ex:
+        if ex.returncode == 255:
+            set_host_unhealthy(remote_host)
         logging.error("RSCO FAILED cmd=%s rc=%d '%s'", cmd, ex.returncode, ex.output)
         return ''
     return output

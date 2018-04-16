@@ -12,6 +12,7 @@ import six
 
 from .util import kill_subprocess_process
 from .connections import Connections
+from .host_health import set_host_unhealthy, is_host_healthy
 from . import myhosts
 
 ON_POSIX = 'posix' in sys.builtin_module_names
@@ -77,7 +78,9 @@ class DockerConnections(Connections):
                              proc.returncode)
                 host['proc'] = None
                 host['last_connection'] = datetime.datetime.now()
-                if proc.returncode == 0:
+                if proc.returncode == 12:
+                    set_host_unhealthy(host['name'])
+                elif proc.returncode == 0:
                     from .events import events
                     events.emit(
                         {"hostname": host['name'], "action": "start"})
@@ -88,6 +91,11 @@ class DockerConnections(Connections):
                         'last_connection']).seconds > 60):
             host['need_connection'] = 1
         if host.get('need_connection') == 0:
+            return
+        if not is_host_healthy(host['name']):
+            logging.warning("DOCKER:SKIP {}".format(host['name']))
+            host['need_connection'] = 0
+            host['last_connection'] = datetime.datetime.now()
             return
         cmd = host['cmd']
         logging.info("DOCKER {} {}".format(host['name'], " ".join(cmd)))

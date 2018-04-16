@@ -12,6 +12,7 @@ import os
 from .util import kill_subprocess_process
 from .workspace import Workspace
 from .connections import Connections
+from .host_health import set_host_unhealthy, is_host_healthy
 from . import myhosts
 
 ON_POSIX = 'posix' in sys.builtin_module_names
@@ -94,6 +95,8 @@ class RsyncConnections(Connections):
                 host['rsyncproc'] = None
                 host['lastsync'] = datetime.datetime.now()
                 host['lastrc'] = proc.returncode
+                if proc.returncode == 12:
+                    set_host_unhealthy(host['name'])
 
         # Every 15 minutes rsync
         period = 15*60 if host.get('lastrc',1) == 0 else 30
@@ -102,6 +105,11 @@ class RsyncConnections(Connections):
                         'lastsync']).seconds > period):
             host['needsync'] = 1
         if host.get('needsync') == 0:
+            return
+        if not is_host_healthy(host['name']):
+            logging.warning("RSYNC SKIP {}".format(host['name']))
+            host['needsync'] = 0
+            host['lastsync'] = datetime.datetime.now()
             return
         cmd = get_rsync_cmd(wsi, host, self._args)
         logging.info("RSYNC {}:{} {}".format(wsi['name'],
