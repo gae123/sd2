@@ -12,8 +12,10 @@ ON_POSIX = 'posix' in sys.builtin_module_names
 
 from .util import convert_rsync_to_regex
 from .util import kill_subprocess_process
+from .util import remote_subprocess_check_output
 from .workspace import Workspace
 from .connections import Connections
+from .host_health import set_host_unhealthy, is_host_healthy
 
 
 def workspace_instance_sync(wi, args):
@@ -53,10 +55,10 @@ def workspace_instance_has_path(wi, apath):
         return True
     return False
 
-def deal_with_changed_file(wi, fpath, args):
+def deal_with_changed_file(wi, fpath, events, args):
     if workspace_instance_has_path(wi, fpath):
         logging.debug("FOUND: wsi %s has path %s", wi['name'], fpath)
-        if os.path.isfile(fpath):
+        if not os.path.exists(fpath) or os.path.isfile(fpath):
             for target in Workspace(wi).get_targets():
                 if args.hosts and not target['name'] in args.hosts:
                     continue
@@ -64,22 +66,39 @@ def deal_with_changed_file(wi, fpath, args):
                     dpath = fpath.replace(wi['source_root'], wi['dest_root'])
                 else:
                     dpath = fpath.replace(os.environ.get('HOME'), '~')
-                cmd = "scp -p {} {}:{}".format(
-                    fpath,
-                    target['name'],
-                    dpath)
-                if args.dryrun:
-                    cmd = 'echo ' + cmd
-                logging.info(cmd)
-                try:
-                    output = subprocess.check_output(cmd, 
-                        stderr=subprocess.STDOUT,
-                        close_fds=ON_POSIX,
-                        shell=True)
-                    if output:
-                        logging.info("SCP: {}".format(output))
-                except subprocess.CalledProcessError as ex:
-                    logging.info("SCP:ERR %s", ex)
+                if (not 'Removed' in events and
+                    os.path.exists(fpath)):
+                    cmd = "scp -p {} {}:{}".format(
+                        fpath,
+                        target['name'],
+                        dpath)
+                    if args.dryrun:
+                        cmd = 'echo ' + cmd
+                    logging.info(cmd)
+                    if is_host_healthy(target['name']):
+                        try:
+                            output = subprocess.check_output(cmd, 
+                                stderr=subprocess.STDOUT,
+                                close_fds=ON_POSIX,
+                                shell=True)
+                            if output:
+                                logging.info("SCP: {}".format(output))
+                        except subprocess.CalledProcessError as ex:
+                            logging.info("SCP:ERR %s", ex)
+                            # Hmmm the return code here is 1 for everything...
+                            #if ex.returncode == 255:
+                            #    set_host_unhealthy(target['name'])
+                    else:
+                        logging.warning("SCP:SKIP %s", target['name'])
+                elif 'Removed' in events or not os.path.exists(fpath):
+                    try:
+                        output = remote_subprocess_check_output(
+                            target['name'],
+                            "rm -rf {}".format(dpath))
+                        if output:
+                            logging.info("SRM: {}".format(output))
+                    except subprocess.CalledProcessError as ex:
+                        logging.info("SRM:ERR %s", ex)
         else:
             workspace_instance_sync(wi, args)
 
@@ -100,6 +119,7 @@ class FSWatcher(Connections):
                 continue
             self._workspaces.append(wi)
             cmd = ['fswatch',
+                   '-x',
                    '--latency', '0.1',
                    '--recursive',
                    # "--exclude='.*\.pyc$'",
@@ -149,8 +169,11 @@ class FSWatcher(Connections):
                 line = proc.stdout.readline().strip()
             except IOError:
                 continue
+            path_events = line.split()
+            path = path_events[0]
+            events = path_events[1:]
             logging.debug('CONS %s %s', ws['name'], line)
-            deal_with_changed_file(ws, line, self._args)
+            deal_with_changed_file(ws, path, events, self._args)
 
     def shutdown(self):
         for wi in self._workspaces:
