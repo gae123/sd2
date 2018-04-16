@@ -44,7 +44,8 @@ ssh_option_names = [
     'ProxyJump',
     "PKCS11Provider",
     'SmartcardDevice',
-    'HostKeyAlias'
+    'HostKeyAlias',
+    'LocalForward'
 ]
 ssh_option_names.extend(container_ssh_option_names)
 
