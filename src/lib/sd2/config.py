@@ -113,7 +113,7 @@ def _dfs(lst):
             nodes = [x for x in lst if x['name'] == name]
             if len(nodes) == 0:
                 sys.stderr.write(
-                    "ERROR: abastract ancestor called {} not found\n".format(name))
+                    "ERROR: abstract ancestor called {} not found in {}\n".format(name, node))
                 sys.exit(1)
             node2 = nodes[0]
             if not node2 in stack and not node2 in visited:
