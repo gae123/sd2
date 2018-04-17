@@ -6,73 +6,67 @@
 UNUSED_USER_ID=21338
 UNUSED_GROUP_ID=21337
 
+UNUSED_DOCKER_GROUP_ID=21336
+
 # Find the package manager, Ubunut uses apt-get, AML uses yum
 (type apt-get &> /dev/null) && DOCKER_PKGUPD="apt-get -y update"
 (type apt-get &> /dev/null) && DOCKER_PKGMGR="apt-get -y install"
 (type yum &> /dev/null) && DOCKER_PKGUPD="true"
 (type yum &> /dev/null) && DOCKER_PKGMGR="yum -y install"
 
-# The set_group_permissions and set_user_permissions functions come from here
+# The ensure_group_id_is_free and ensure_user_id_is_free functions come from here
 # https://github.com/schmidigital/permission-fix/blob/master/LICENSE
 # MIT License
 
-function set_group_permissions() {
-    readonly DOCKER_GROUP=$1
-    readonly HOST_GROUP_ID=$2
-    # Setting Group Permissions
-    DOCKER_GROUP_CURRENT_ID=$(id -g $DOCKER_GROUP 2> /dev/null)
+function ensure_group_id_is_free() {
+    local DOCKER_GROUP=$1
+    local HOST_GROUP_ID=$2
+    local UNUSED_ID=$3
+    
+    echo "EGIF: Check if group with ID $HOST_GROUP_ID already exists"
+    DOCKER_GROUP_OLD=`getent group $HOST_GROUP_ID | cut -d: -f1`
 
-    echo SGP: DG:$DOCKER_GROUP   HGID:$HOST_GROUP_ID DGCID:$DOCKER_GROUP_CURRENT_ID > /dev/null
-
-    if [ x"$DOCKER_GROUP_CURRENT_ID" = x"$HOST_GROUP_ID" ]; then
-      echo "Group $DOCKER_GROUP is already mapped to $DOCKER_GROUP_CURRENT_ID. Nice!" > /dev/null
+    if [ -z "$DOCKER_GROUP_OLD" ]; then
+      echo "EGIF: Group ID is free. Good." 
+    elif [ x"$DOCKER_GROUP_OLD" = x"DOCKER_GROUP" ]; then
+      echo "EGIF: Group ID is taken by the right group" 
     else
-      echo "Check if group with ID $HOST_GROUP_ID already exists" > /dev/null
-      DOCKER_GROUP_OLD=`getent group $HOST_GROUP_ID | cut -d: -f1`
+      echo "EGIF: Group ID is already taken by group: $DOCKER_GROUP_OLD" 
 
-      if [ -z "$DOCKER_GROUP_OLD" ]; then
-        echo "Group ID is free. Good." > /dev/null
-      else
-        echo "Group ID is already taken by group: $DOCKER_GROUP_OLD" > /dev/null
-
-        echo "Changing the ID of $DOCKER_GROUP_OLD group to $UNUSED_GROUP_ID" > /dev/null
-        groupmod -o -g $UNUSED_GROUP_ID $DOCKER_GROUP_OLD
-      fi
-
-      #echo "Changing the ID of $DOCKER_GROUP group to $HOST_GROUP_ID"
-      #groupmod -o -g $HOST_GROUP_ID $DOCKER_GROUP || true
-      echo "Finished" > /dev/null
-      echo "-- -- -- -- --" > /dev/null
+      echo "EGIF: Changing the ID of $DOCKER_GROUP_OLD group to $UNUSED_GROUP_ID" 
+      groupmod -o -g $UNUSED_ID $DOCKER_GROUP_OLD
     fi
+
+    #echo "Changing the ID of $DOCKER_GROUP group to $HOST_GROUP_ID"
+    #groupmod -o -g $HOST_GROUP_ID $DOCKER_GROUP || true
+    echo "EGIF: Finished" 
+    echo "EGIF: -- -- -- -- --" 
+
 }
 
-function set_user_permissions() {
-    readonly DOCKER_USER=$1
-    readonly HOST_USER_ID=$2
+function ensure_user_id_is_free() {
+    local DOCKER_USER=$1
+    local HOST_USER_ID=$2
+    local UNUSED_ID=$3
     # Setting User Permissions
-    DOCKER_USER_CURRENT_ID=$(id -u $DOCKER_USER 2> /dev/null)
+    
+    echo "EUIF: Check if user with ID $HOST_USER_ID already exists" 
+    DOCKER_USER_OLD=`getent passwd $HOST_USER_ID | cut -d: -f1`
 
-    echo DU:$DOCKER_USER  HUID:$HOST_USER_ID DUCID:$DOCKER_USER_CURRENT_ID > /dev/null
-
-    if [ x"$DOCKER_USER_CURRENT_ID" = x"$HOST_USER_ID" ]; then
-      echo "User $DOCKER_USER is already mapped to $DOCKER_USER_CURRENT_ID. Nice!" > /dev/null
+    if [ -z "$DOCKER_USER_OLD" ]; then
+      echo "EUIF: User ID is free. Good." 
+    elif [ x"$DOCKER_USER_OLD" = x"DOCKER_USER" ]; then
+      echo "EUIF: USER ID is taken by the right user" 
     else
-      echo "Check if user with ID $HOST_USER_ID already exists" > /dev/null
-      DOCKER_USER_OLD=`getent passwd $HOST_USER_ID | cut -d: -f1`
+      echo "EUIF: User ID is already taken by user: $DOCKER_USER_OLD" 
 
-      if [ -z "$DOCKER_USER_OLD" ]; then
-        echo "User ID is free. Good." > /dev/null
-      else
-        echo "User ID is already taken by user: $DOCKER_USER_OLD" > /dev/null
-
-        echo "Changing the ID of $DOCKER_USER_OLD to 21337" > /dev/null
-        usermod -o -u $UNUSED_USER_ID $DOCKER_USER_OLD
-      fi
-
-      #echo "Changing the ID of $DOCKER_USER user to $HOST_USER_ID"
-      #usermod -o -u $HOST_USER_ID $DOCKER_USER || true
-      echo "Finished" > /dev/null
+      echo "EUIF: Changing the ID of $DOCKER_USER_OLD to 21337" 
+      usermod -o -u $UNUSED_ID $DOCKER_USER_OLD
     fi
+
+    #echo "Changing the ID of $DOCKER_USER user to $HOST_USER_ID"
+    #usermod -o -u $HOST_USER_ID $DOCKER_USER || true
+    echo "EUIF: Finished" 
 }
 
 # Variables that must be defined
@@ -93,11 +87,13 @@ readonly DOCKER_USER_ID=$(id -u $USER 2> /dev/null)
 if [ x"$DOCKER_USER_ID" = x"" ]; then
     (type yum &> /dev/null) && $DOCKER_PKGMGR shadow-utils  # for usermod etc
     (type sudo &> /dev/null) || ($DOCKER_PKGUPD && $DOCKER_PKGMGR sudo)
+
     # First time only
-    set_user_permissions $USER $USER_ID
-    set_group_permissions $USER $GROUP_ID
+    ensure_group_id_is_free $USER $GROUP_ID $UNUSED_GROUP_ID
     (type yum &> /dev/null) && groupadd --gid $GROUP_ID $USER
     (type apt-get &> /dev/null) && addgroup --gid $GROUP_ID $USER
+
+    ensure_user_id_is_free $USER $USER_ID $UNUSED_USER_ID
     (type yum &> /dev/null) && adduser \
                 --no-create-home  --uid $USER_ID --gid $GROUP_ID $USER
     (type apt-get &> /dev/null) && adduser  \
@@ -107,6 +103,14 @@ if [ x"$DOCKER_USER_ID" = x"" ]; then
             --uid $USER_ID \
             --ingroup $USER $USER
     echo "$USER ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USER
+
+    if [ x"$DOCKER_GROUP_ID" != x"" ] ; then
+        ensure_group_id_is_free docker $DOCKER_GROUP_ID $UNUSED_DOCKER_GROUP_ID
+        (type yum &> /dev/null) && groupadd --gid $DOCKER_GROUP_ID docker
+        (type apt-get &> /dev/null) && addgroup --gid $DOCKER_GROUP_ID docker
+        usermod -aG docker $USER
+    fi
+    
     if [ x"$SD2_EP_SSH" = x"1" ]; then
         (type sshd &> /dev/null) || ($DOCKER_PKGUPD && $DOCKER_PKGMGR openssh-server)
     fi
