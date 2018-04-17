@@ -84,7 +84,10 @@ def get_container_extra_flags(containerName):
     if not initialized:
         init()
     cont = containersdict[containerName]
-    return cont['image'].get('extra_flags', '')
+    rr = cont['image'].get('extra_flags', '')
+    if isinstance(rr, list):
+        rr = " ".join(rr)
+    return rr
 
 def get_container_mount_home_dir(containerName):
     if not initialized:

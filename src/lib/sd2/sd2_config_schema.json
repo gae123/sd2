@@ -133,7 +133,10 @@
       "properties": {
         "name": {"type": "string"},
         "docker_name": {"type": "string"},
-        "docker_auth": {"type": "string"},
+        "docker_auth": {
+          "type": "string",
+          "description": "A command to run just before running docker, usually used for authentication"
+        },
          "mount_home_dir": {"type": "boolean", "default": true},
         "ports": {
           "type": "array",
@@ -157,7 +160,13 @@
           },
           "uniqueItems": true
         },
-        "extra_flags": {"type": "string"},
+        "extra_flags": {
+            "type": ["string", "array"],
+            "description": "Flags to add to the docker command line",
+            "items": {
+                "type": "string"
+            }
+        },
         "command": {"type": "string"}
       }
     },
