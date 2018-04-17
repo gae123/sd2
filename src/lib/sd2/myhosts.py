@@ -125,7 +125,7 @@ def get_container_docker_image(containerName):
     if not initialized:
         init()
     cont = containersdict[containerName]
-    return cont['image']['docker_name']
+    return cont['image'].get('docker_name') or cont['image'].get('docker_image_name')
 
 def get_container_ports(containerName):
     if not initialized:
@@ -137,7 +137,11 @@ def get_container_env(containerName):
     if not initialized:
         init()
     cont = containersdict[containerName]
-    return cont['image'].get('env', [])
+    environ = cont['image'].get('environ')
+    if environ is None:
+        return cont['image'].get('env', [])
+    rr = [{"name": x.split(":")[0], "value": x[x.find(":") + 1:]} for x in environ]
+    return rr
 
 def get_container_ip(containerName):
     if not initialized:

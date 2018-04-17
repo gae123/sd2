@@ -42,10 +42,6 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
     ])
     if myhosts.get_container_mount_home_dir(container_host_name):
         cmd.extend(["--volume", "$HOME:/home/$USER"])
-    # if util.remote_path_exists(host_name, '/etc/localtime'):
-    #     cmd.extend(['--volume', '/etc/localtime:/etc/localtime:ro'])
-    # if util.remote_path_exists(host_name, '/etc/timezone'):
-    #     cmd.extend(['--volume', '/etc/timezone:/etc/timezone:ro'])
     if util.remote_path_exists(host_name, '/mnt'):
         cmd.extend(['--volume', '/mnt:/mnt'])
 
@@ -54,10 +50,7 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
         cmd.append(ports)
         
     env = {
-        "SD2IP": ns_host_ip,
-        "USER": "$USER",
-        "USER_ID": util.remote_subprocess_check_output(host_name, ['id', '-u']).rstrip(),
-        "GROUP_ID": util.remote_subprocess_check_output(host_name, ['id', '-g']).rstrip(),
+        "SD2IP": ns_host_ip
     }
     env.update()
     for var in myhosts.get_container_env(container_host_name):

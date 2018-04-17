@@ -128,11 +128,14 @@
 
     "image": {
       "type": "object",
-      "required": ["name", "docker_name"],
+      "required": ["name", "docker_image_name"],
       "additionalProperties": false,
       "properties": {
         "name": {"type": "string"},
-        "docker_name": {"type": "string"},
+        "docker_image_name": {
+            "type": "string", 
+            "description": "The docker image name"
+        },
         "docker_auth": {
           "type": "string",
           "description": "A command to run just before running docker, usually used for authentication"
@@ -157,6 +160,14 @@
               "name": {"type": "string"},
               "value": {"type": "string"}
             }
+          },
+          "uniqueItems": true
+        },
+        "environ": {
+          "description": "Environment variables array to be passed to the container",
+          "type": "array",
+          "items": {
+            "type": "string"
           },
           "uniqueItems": true
         },

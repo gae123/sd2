@@ -13,5 +13,5 @@ export SD2_SSH_CONFIG=$TESTDIR/ssh_config
 export SD2_CIDR_DB_PATH=$TESTDIR/sd2-cidr-db
 
 sd2
-echo \'s2 halt\' to stop the daemon
+echo \'sd2 halt\' to stop the daemon
 echo \'Use ssh -F $SD2_SSH_CONFIG paros-1\'

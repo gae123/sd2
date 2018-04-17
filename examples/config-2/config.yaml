@@ -1,14 +1,15 @@
 
 images:
   - name: ubuntu1604
-    docker_name: pako/ubuntu1604-ssh-rsync:1.2
+    docker_image_name: pako/ubuntu1604-ssh-rsync:1.2
+    environ:
+      - USER:$$USER
+      - USER_ID:$(id -u)
+      - GROUP_ID:$(id -g)
+      - SD2_EP_SSH:1
+      - SD2_EP_DAEMON:1
+      - SD2_EP_TZ:America/Los_Angeles
     extra_flags: --entrypoint /home/${USER}/projects/0.sd2/examples/entrypoint.sh
-    env:
-      - name: SD2_EP_SSH
-        value: "1"
-      - name: SD2_EP_TZ
-        value: America/Los_Angeles
-
 
 hosts:
   - name: paros

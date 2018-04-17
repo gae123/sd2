@@ -69,53 +69,36 @@ function ensure_user_id_is_free() {
     echo "EUIF: Finished" 
 }
 
-# Variables that must be defined
-if [ "$USER" = "" ] ; then
-   echo Error: USER is not defined
-   exit 1
-fi
-if [ "$USER_ID" = "" ] ; then
-   echo Error: USER_ID is not defined
-   exit 1
-fi
-if [ "$GROUP_ID" = "" ] ; then
-   echo Error: GROUP_ID is not defined
-   exit 1
-fi
-
-readonly DOCKER_USER_ID=$(id -u $USER 2> /dev/null)
-if [ x"$DOCKER_USER_ID" = x"" ]; then
+if [ x"$USER" != x"" ] ; then
     (type yum &> /dev/null) && $DOCKER_PKGMGR shadow-utils  # for usermod etc
     (type sudo &> /dev/null) || ($DOCKER_PKGUPD && $DOCKER_PKGMGR sudo)
-
-    # First time only
-    ensure_group_id_is_free $USER $GROUP_ID $UNUSED_GROUP_ID
-    (type yum &> /dev/null) && groupadd --gid $GROUP_ID $USER
-    (type apt-get &> /dev/null) && addgroup --gid $GROUP_ID $USER
-
-    ensure_user_id_is_free $USER $USER_ID $UNUSED_USER_ID
-    (type yum &> /dev/null) && adduser \
-                --no-create-home  --uid $USER_ID --gid $GROUP_ID $USER
-    (type apt-get &> /dev/null) && adduser  \
-            --disabled-password \
-            --no-create-home \
-            --gecos '' \
-            --uid $USER_ID \
-            --ingroup $USER $USER
-    echo "$USER ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USER
-
-    if [ x"$DOCKER_GROUP_ID" != x"" ] ; then
-        ensure_group_id_is_free docker $DOCKER_GROUP_ID $UNUSED_DOCKER_GROUP_ID
-        (type yum &> /dev/null) && groupadd --gid $DOCKER_GROUP_ID docker
-        (type apt-get &> /dev/null) && addgroup --gid $DOCKER_GROUP_ID docker
-        usermod -aG docker $USER
+    if [ x"$GROUP_ID" != x"" -a x"$(getent group $GROUP_ID | cut -d: -f1)" != x"$USER" ] ; then
+        ensure_group_id_is_free $USER $GROUP_ID $UNUSED_GROUP_ID
+        (type yum &> /dev/null) && groupadd --gid $GROUP_ID $USER
+        (type apt-get &> /dev/null) && addgroup --gid $GROUP_ID $USER
     fi
-    
-    if [ x"$SD2_EP_SSH" = x"1" ]; then
-        (type sshd &> /dev/null) || ($DOCKER_PKGUPD && $DOCKER_PKGMGR openssh-server)
+    if [ x"$USER_ID" != x"" -a x"$(getent passwd $USER_ID | cut -d: -f1)" != x"$USER" ] ; then
+        ensure_user_id_is_free $USER $USER_ID $UNUSED_USER_ID
+        (type yum &> /dev/null) && adduser \
+                    --no-create-home  --uid $USER_ID --gid $GROUP_ID $USER
+        (type apt-get &> /dev/null) && adduser  \
+                --disabled-password \
+                --no-create-home \
+                --gecos '' \
+                --uid $USER_ID \
+                --ingroup $USER $USER
+        echo "$USER ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USER
     fi
 fi
-if [ x"$SD2_EP_SSH" = x"1" ]; then
+if [ x"$DOCKER_GROUP_ID" != x"" -a \
+    x"$(getent group $HOST_USER_ID | cut -d: -f1)" != x"docker" ] ; then
+    ensure_group_id_is_free docker $DOCKER_GROUP_ID $UNUSED_DOCKER_GROUP_ID
+    (type yum &> /dev/null) && groupadd --gid $DOCKER_GROUP_ID docker
+    (type apt-get &> /dev/null) && addgroup --gid $DOCKER_GROUP_ID docker
+    usermod -aG docker $USER
+fi
+if [ x"$SD2_EP_SSH" = x"1" ]; then 
+    (type sshd &> /dev/null) || ($DOCKER_PKGUPD && $DOCKER_PKGMGR openssh-server)
     (type yum &> /dev/null) && service sshd start
     (type apt-get &> /dev/null) && service ssh start
 fi

@@ -1,17 +1,18 @@
 
 images:
   - name: "ubuntu1604"  # The name that will be used in this file
-    docker_name: "pako/ubuntu1604-ssh-nginx:1.2" # The docker repo an version
-    extra_flags: --entrypoint /home/${USER}/projects/0.sd2/examples/entrypoint.sh
+    docker_image_name: "pako/ubuntu1604-ssh-nginx:1.2" # The docker repo an version
     ports:
       - 80:80
-    env:
-      - name: FOO
-        value: bar
-      - name: SD2_EP_SSH
-        value: "1"
-      - name: SD2_EP_TZ
-        value: America/Los_Angeles
+    environ:
+      - USER:$$USER
+      - USER_ID:$(id -u)
+      - GROUP_ID:$(id -g)
+      - FOO:bar
+      - SD2_EP_SSH:1
+      - SD2_EP_DAEMON:1
+      - SD2_EP_TZ:America/Los_Angeles
+    extra_flags: --entrypoint /home/${USER}/projects/0.sd2/examples/entrypoint.sh
 
 hosts:
   - name: paros
