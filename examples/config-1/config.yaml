@@ -1,19 +1,23 @@
 
+# sd2 images are docker images with directions on how they should be started
 images:
   - name: "ubuntu1604"  # The name that will be used in this file
+    # Execute this command before starting the container to get the entrypoint script
+    docker_auth: >-
+      wget -O ~/.tmp_entrypoint.sh 
+      https://raw.githubusercontent.com/gae123/sd2/master/examples/entrypoint.sh;
+      chmod +x ~/.tmp_entrypoint.sh
     docker_image_name: "pako/ubuntu1604-ssh-nginx:1.2" # The docker repo an version
-    ports:
-      - 80:80
     environ:
-      - USER:$$USER
-      - USER_ID:$(id -u)
-      - GROUP_ID:$(id -g)
-      - FOO:bar
-      - SD2_EP_SSH:1
-      - SD2_EP_DAEMON:1
-      - SD2_EP_TZ:America/Los_Angeles
-    extra_flags: --entrypoint /home/${USER}/projects/0.sd2/examples/entrypoint.sh
+      - USER:$$USER           # used by entrypoint.sh
+      - USER_ID:$(id -u)      # used by entrypoint.sh
+      - GROUP_ID:$(id -g)     # used by entrypoint.sh
+      - SD2_EP_SSH:1          # used by entrypoint.sh
+      - SD2_EP_DAEMON:1       # used by entrypoint.sh
+      - SD2_EP_TZ:America/Los_Angeles # used by entrypoint.sh
+    extra_flags: --entrypoint /home/$$USER/.tmp_entrypoint.sh
 
+# An sd2 host is a name associated with directions on how to ssh to it
 hosts:
   - name: paros
     # You need to create a key pair, this is the public key,the private
@@ -21,8 +25,9 @@ hosts:
     IdentityFile: ~${USER}/.ssh/id_rsa-2015
     enabled: yes  
 
+# docker containers created using an sd2 image
 containers:
   - name: "1"  # This container will be called paros-1
     hostname: "paros"
-    imagename: "ubuntu1604"   
+    imagename: "ubuntu1604"   # The image in the images section
     enabled: yes

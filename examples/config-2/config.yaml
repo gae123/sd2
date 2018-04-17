@@ -1,6 +1,11 @@
 
 images:
   - name: ubuntu1604
+    # Execute this command before starting the container to get the entrypoint script
+    docker_auth: >-
+      wget -O ~/.tmp_entrypoint.sh 
+      https://raw.githubusercontent.com/gae123/sd2/master/examples/entrypoint.sh;
+      chmod +x ~/.tmp_entrypoint.sh
     docker_image_name: pako/ubuntu1604-ssh-rsync:1.2
     environ:
       - USER:$$USER
@@ -9,7 +14,8 @@ images:
       - SD2_EP_SSH:1
       - SD2_EP_DAEMON:1
       - SD2_EP_TZ:America/Los_Angeles
-    extra_flags: --entrypoint /home/${USER}/projects/0.sd2/examples/entrypoint.sh
+    extra_flags: --entrypoint /home/$$USER/.tmp_entrypoint.sh
+
 
 hosts:
   - name: paros
