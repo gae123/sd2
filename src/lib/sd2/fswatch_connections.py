@@ -58,6 +58,9 @@ def workspace_instance_has_path(wi, apath):
 def deal_with_changed_file(wi, fpath, events, args):
     if workspace_instance_has_path(wi, fpath):
         logging.debug("FOUND: wsi %s has path %s", wi['name'], fpath)
+        if ".git/index.lock" in fpath:
+            # .git seems to keep changing this file every time a file changes
+            return
         if not os.path.exists(fpath) or os.path.isfile(fpath):
             for target in Workspace(wi).get_targets():
                 if args.hosts and not target['name'] in args.hosts:
@@ -66,8 +69,7 @@ def deal_with_changed_file(wi, fpath, events, args):
                     dpath = fpath.replace(wi['source_root'], wi['dest_root'])
                 else:
                     dpath = fpath.replace(os.environ.get('HOME'), '~')
-                if (not 'Removed' in events and
-                    os.path.exists(fpath)):
+                if (os.path.exists(fpath)):
                     cmd = "scp -p {} {}:{}".format(
                         fpath,
                         target['name'],
@@ -90,7 +92,7 @@ def deal_with_changed_file(wi, fpath, events, args):
                             #    set_host_unhealthy(target['name'])
                     else:
                         logging.warning("SCP:SKIP %s", target['name'])
-                elif 'Removed' in events or not os.path.exists(fpath):
+                elif 'Removed' in events and not os.path.exists(fpath):
                     try:
                         output = remote_subprocess_check_output(
                             target['name'],
