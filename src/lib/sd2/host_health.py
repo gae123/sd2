@@ -26,7 +26,7 @@ def is_host_healthy(hostname):
     hostentry = unhealthy_hosts.get(hostname)
     if hostentry is None:
         return True
-    if time.time() - hostentry['timestamp'] > 5 * 60:
+    if time.time() - hostentry['timestamp'] > 60 * 60:
         del unhealthy_hosts[hostname]
         return True
     if hostentry['failures'] < 3:

@@ -95,7 +95,7 @@ class RsyncConnections(Connections):
                 host['rsyncproc'] = None
                 host['lastsync'] = datetime.datetime.now()
                 host['lastrc'] = proc.returncode
-                if proc.returncode == 12:
+                if proc.returncode != 0:
                     set_host_unhealthy(host['name'])
 
         # Every 15 minutes rsync
