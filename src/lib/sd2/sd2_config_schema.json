@@ -99,6 +99,13 @@
       "additionalProperties": false,
       "properties": {
         "name": {"type": ["string","number"]},
+        "aliases": {
+          "type": "array",
+          "description": "Names that will be added to /etc/hosts for this container",
+          "items": {
+            "type": "string"
+          }
+        },
         "abstract": {"type": "boolean"},
         "extends": {"type": "string"},
         "imagename": {"type": "string"},

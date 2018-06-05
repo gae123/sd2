@@ -15,7 +15,11 @@ def get_our_config():
             continue
         rr += '{}\t{}\n'.format(host['local-ip'], host['name'] + '-local')
         for cont in host['containers']:
-            rr += '{}\t{}\n'.format(cont['ip'], cont['name'])
+            rr += '{}\t'.format(cont['ip'])
+            rr += "{} ".format(cont['name'])
+            for alias in cont.get('aliases', []):
+                rr += "{} ".format(alias)
+            rr += '\n'
     return rr
 
 def gen_etc_hosts():

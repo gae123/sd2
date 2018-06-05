@@ -98,7 +98,7 @@ class DockerConnections(Connections):
             host['last_connection'] = datetime.datetime.now()
             return
         cmd = host['cmd']
-        logging.info("DOCKER {} {}".format(host['name'], " ".join(cmd)))
+        logging.info("DOCKER:START {} {}".format(host['name'], " ".join(cmd)))
         host['proc'] = subprocess.Popen(cmd,
                                          stdout=subprocess.PIPE,
                                          stderr=subprocess.STDOUT,

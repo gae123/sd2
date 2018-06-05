@@ -43,6 +43,8 @@ def init(a_config_dct=None):
         for ii, container in enumerate(config_containers):
             image_name = container if isinstance(container, six.string_types) else \
                         container['imagename']
+            aliases = [] if isinstance(container, six.string_types) else \
+                        container.get('aliases', [])
             enabled = host['enabled']
             if isinstance(container, dict) and enabled:
                 enabled = container.get('enabled', True) and not container.get('disabled', False)
@@ -59,7 +61,8 @@ def init(a_config_dct=None):
                                         isinstance(container, six.string_types) 
                           else container.get('remove_if_running_when_disabled', False)),
                 'host': host, # The host where the container lives
-                'enabled': enabled
+                'enabled': enabled,
+                'aliases': aliases
             }
             containers.append(cont)
             if containersdict.get(cont['name']):

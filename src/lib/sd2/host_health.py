@@ -6,11 +6,13 @@
 them"""
 
 import time
+import logging
 
 unhealthy_hosts = {}
 
 
 def set_host_unhealthy(hostname):
+    logging.warning("SHOU %s", hostname)
     entry = unhealthy_hosts.get(hostname)
     if entry is None:
         entry = {

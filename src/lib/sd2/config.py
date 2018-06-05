@@ -96,7 +96,7 @@ def process_containers(dct):
                     "ERROR: host '{}' already has a container with name '{}'.\n". format(
                         host['name'], cont['name']))
 
-        cont_host['containers'].append(cont)            
+        cont_host['containers'].append(cont)    
 
 
 def _dfs(lst):
