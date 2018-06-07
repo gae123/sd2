@@ -69,6 +69,8 @@ def generate_for_host(host):
                 rr += '\n'
     
         rr += 'host {}\n'.format(host['name'])
+        rr += '    ControlMaster auto\n'
+        rr += '    ControlPath ~/.ssh/control:%h:%p:%r\n'
         for key, val in six.iteritems(host):
             if not key in ssh_option_names:
                 continue

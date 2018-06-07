@@ -62,9 +62,17 @@ class SSHConnections(Connections):
                 else:
                     sshcmd = "ssh"
                     
+                self.hosts_to_ssh[host['name'] + '-ports'] = {
+                    'name': host['name'] + '-ports',
+                    'sshcmd': sshcmd + ' -T ' + host['name'] + '-ports',
+                    'ssh': {
+                        'proc': None
+                    },
+                    '_digest': digest(host)
+                }
                 self.hosts_to_ssh[host['name']] = {
                     'name': host['name'],
-                    'sshcmd': sshcmd + ' -T ' + host['name'] + '-ports',
+                    'sshcmd': 'ssh -T ' + host['name'],
                     'ssh': {
                         'proc': None
                     },
@@ -129,8 +137,10 @@ class SSHConnections(Connections):
                             fl | os.O_NONBLOCK)
 
     def shutdown(self):
-        pass
-        # for host in self.hosts_to_ssh.values():
-        #     proc = host['sshproc']
-        #     kill_subprocess_process(proc, "SSH {}".format(host['name']))
+        for host in self.hosts_to_ssh.values():
+            try:
+                proc = host['ssh']['proc']
+                kill_subprocess_process(proc, "SSH {}".format(host['name']))
+            except:
+                pass
 
