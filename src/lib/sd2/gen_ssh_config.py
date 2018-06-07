@@ -26,7 +26,9 @@ host {cont[name]}
 '''
 container_ssh_option_names = [
     'IdentityFile',
-    "IdentitiesOnly"
+    "IdentitiesOnly",
+    "PKCS11Provider",
+    'ProxyCommand',
 ]
 
 ssh_option_names = [
