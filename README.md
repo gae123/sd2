@@ -2,10 +2,9 @@
 
 # sd<sup>2</sup>: Powering Software Defined Software Development™
 The Software Defined Software Development Process aka sd<sup>2</sup> (pronounced 
-sd-square) is 
-a modern Software Development approach. It aims to assist developers 
+sd-square) aims to assist developers 
 who work concurrently with multiple source bases, 
-each with multiple branches and potentially its own technology
+each with multiple branches and each potentially with its own technology
 stack. 
 
 sd<sup>2</sup> relies heavily on a **single** text configuration
@@ -42,7 +41,7 @@ The containers run on hosts that we call development hosts (DH).
     1. Ensure that every
      developer in the team has exactly the 
     same development stack independent of the editing environment they use.
-1. sd2 uses a combination of tools to make sure that when you change a file on 
+1. sd2 uses a combination of technologies to make sure that when you change a file on 
 the EH, the file is copied to the destination(s) almost instanteneoulsy.
 1. All generated files/artifacts are generated in the DHs. Since you only 
 commit on EHs, there is no chance for accidentally commit generated artifacts.
@@ -56,7 +55,7 @@ the target platforms.
        
 ## How to set it up
 sd2 relies on one or more configuration files that define your DHs, 
-your conainers/images 
+your conainers/images, 
 and your repositories/workspaces. The configuration file needs to be in your 
 home directory 
 under .sd2 (ie ~/.sd2/config.yaml). 
@@ -229,7 +228,8 @@ and leverage such frameworks.
 1. The implemenation is in python but relies a lot on unix tools. I am 
 sure people would want a Windows port.
 
-## For developers
+## How to develop the tool itself
+1. Fork the repository
 1. Build the source code by running `cd build; make`
-1. The main program is in bin/sd2 start from there
+1. The main program is in bin/sd2 start from there for testing personal user
 1. When ready to push change the version number at the top of build/Makefile and run `make push`
