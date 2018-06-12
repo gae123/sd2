@@ -79,11 +79,12 @@ def is_localhost(hostname):
         return True
     return False
 
+
 def remote_system(remote_host, cmd):
     if isinstance(cmd, (list, tuple)):
         cmd = " ".join(cmd)
     if remote_host and not is_localhost(remote_host):
-        cmd = "ssh {} '{}'".format(remote_host, cmd)
+        cmd = "ssh {}-bridge '{}'".format(remote_host, cmd)
         if not is_host_healthy(remote_host):
             logging.debug("RSYS SKIP: " + cmd)
             return
@@ -99,7 +100,7 @@ def remote_subprocess_check_output(remote_host, cmd):
     if isinstance(cmd, (list, tuple)):
         cmd = " ".join(cmd)
     if remote_host and not is_localhost(remote_host):
-        cmd = "ssh {} '{}'".format(remote_host, cmd)
+        cmd = "ssh {}-bridge '{}'".format(remote_host, cmd)
     if not is_host_healthy(remote_host):
         logging.debug("RSCO SKIP: " + cmd)
         return ''
@@ -114,11 +115,12 @@ def remote_subprocess_check_output(remote_host, cmd):
         return ''
     return output
 
+
 def remote_path_exists(remote_host, path):
     if is_localhost(remote_host):
         return os.path.exists(path)
     else:
-        cmd = "ssh {} '[ -e {} ] && echo yes'".format(remote_host, path)
+        cmd = "ssh {}-bridge '[ -e {} ] && echo yes'".format(remote_host, path)
         output = subprocess.check_output(cmd, shell=True)
         return output.rstrip() == 'yes'
 

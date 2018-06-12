@@ -46,7 +46,7 @@ def get_rsync_cmd(ws, host, args):
     path = os.path.join(ws['source_root'], ws.get("source", ""))
     cmd.append(slash_ending(path))
     dest_root = ws.get('dest_root', ws['source_root']).replace(os.environ.get('HOME'), '~')
-    cmd.append("{}:{}".format(host['name'],
+    cmd.append("{}-bridge:{}".format(host['name'],
             slash_ending(os.path.join(dest_root, ws.get("source", "")))))
     return cmd
 

@@ -64,15 +64,17 @@ class SSHConnections(Connections):
                     
                 self.hosts_to_ssh[host['name'] + '-ports'] = {
                     'name': host['name'] + '-ports',
+                    'health_name': host['name'],
                     'sshcmd': sshcmd + ' -T ' + host['name'] + '-ports',
                     'ssh': {
                         'proc': None
                     },
                     '_digest': digest(host)
                 }
-                self.hosts_to_ssh[host['name']] = {
-                    'name': host['name'],
-                    'sshcmd': 'ssh -T ' + host['name'],
+                self.hosts_to_ssh[host['name'] + '-bridge'] = {
+                    'name': host['name'] + '-bridge',
+                    'health_name': host['name'],
+                    'sshcmd': 'ssh -T ' + host['name'] + '-bridge',
                     'ssh': {
                         'proc': None
                     },
@@ -108,17 +110,17 @@ class SSHConnections(Connections):
                     log("SSH:RC %s=%s",
                                  host['sshcmd'],
                                  host['ssh']['proc'].returncode)
-                    if host['ssh']['proc'].returncode == 12:
-                        set_host_unhealthy(host['name'])
+                    if host['ssh']['proc'].returncode in (12, 255):
+                        set_host_unhealthy(host['health_name'])
                     host['ssh']['proc'] = None
                 # Only try to start once every 30 seconds
                 if (host['ssh'].get('last_connection') and
                             (datetime.datetime.now() - host[
                                 'ssh']['last_connection']).seconds < 30):
                     continue
-                if not is_host_healthy(host['name']):
+                if not is_host_healthy(host['health_name']):
                     #logging.info("SSH:SKIP %s", host['sshcmd'])
-                    return
+                    continue
                 else:
                     logging.info("SSH:START %s", host['sshcmd'])
                 try:

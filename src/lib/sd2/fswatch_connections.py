@@ -24,6 +24,7 @@ def workspace_instance_sync(wi, args):
             continue
         host['needsync'] = 1
 
+
 def workspace_instance_has_path(wi, apath):
     import re
     full_path = os.path.join(wi['source_root'], wi.get('source', ''))
@@ -70,7 +71,7 @@ def deal_with_changed_file(wi, fpath, events, args):
                 else:
                     dpath = fpath.replace(os.environ.get('HOME'), '~')
                 if (os.path.exists(fpath)):
-                    cmd = "scp -p {} {}:{}".format(
+                    cmd = "scp -p {} {}-bridge:{}".format(
                         fpath,
                         target['name'],
                         dpath)

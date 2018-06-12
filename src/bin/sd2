@@ -68,11 +68,13 @@ def main():
     fswatchers = rsyncers = dockers = host_connections = None
     try:
         config_dct = init()
-        g_ssh_connections.init(g_args)
+        host_connections = HostConnections(g_args, g_workspaces)
+        
+        g_ssh_connections.init(g_args) 
         fswatchers = FSWatcher(g_args, g_workspaces)
         rsyncers = RsyncConnections(g_args, g_workspaces)
         dockers = DockerConnections(g_args, g_workspaces)
-        host_connections = HostConnections(g_args, g_workspaces)
+        
         while True:
             if sd2.has_timestamp_changed(config_dct):
                 raise RestartEcxeption()

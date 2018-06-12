@@ -51,6 +51,21 @@ ssh_option_names = [
 ]
 ssh_option_names.extend(container_ssh_option_names)
 
+def generate_host_entry(host, name, more):
+    rr = ""
+    rr += 'host {}\n'.format(name)
+    for key, val in six.iteritems(host):
+        if not key in ssh_option_names:
+            continue
+        if not isinstance(val, (list, tuple)):
+            val = [val]
+        for vv in val:
+            rr += '    {key} {value}\n'.format(key=key, value=vv)
+    for entry in more:
+        rr += entry + "\n"        
+    rr += '\n'
+    return rr
+
 def generate_for_host(host):
     from . import util
     rr = ''
@@ -70,17 +85,11 @@ def generate_for_host(host):
                                                            value=match[key])
                 rr += '\n'
     
-        rr += 'host {}\n'.format(host['name'])
-        rr += '    ControlMaster auto\n'
-        rr += '    ControlPath ~/.ssh/control:%h:%p:%r\n'
-        for key, val in six.iteritems(host):
-            if not key in ssh_option_names:
-                continue
-            if not isinstance(val, (list, tuple)):
-                val = [val]
-            for vv in val:
-                rr += '    {key} {value}\n'.format(key=key, value=vv)
-        rr += '\n'
+        rr += generate_host_entry(host, host['name'], [])
+        rr += generate_host_entry(host, host['name'] + "-bridge", [
+            '    ControlMaster auto',
+            '    ControlPath ~/.ssh/control:%h:%p:%r'
+        ])
     
         if host.get('containers'):
             rr += 'host {}-ports\n'.format(host['name'])
