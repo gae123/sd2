@@ -13,6 +13,7 @@ ON_POSIX = 'posix' in sys.builtin_module_names
 from .util import convert_rsync_to_regex
 from .util import kill_subprocess_process
 from .util import remote_subprocess_check_output
+from .util import ssh_control_args
 from .workspace import Workspace
 from .connections import Connections
 from .host_health import set_host_unhealthy, is_host_healthy
@@ -71,7 +72,8 @@ def deal_with_changed_file(wi, fpath, events, args):
                 else:
                     dpath = fpath.replace(os.environ.get('HOME'), '~')
                 if (os.path.exists(fpath)):
-                    cmd = "scp -p {} {}-bridge:{}".format(
+                    cmd = "scp {} -p {} {}:{}".format(
+                        ssh_control_args(), 
                         fpath,
                         target['name'],
                         dpath)

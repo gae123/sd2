@@ -86,11 +86,6 @@ def generate_for_host(host):
                 rr += '\n'
     
         rr += generate_host_entry(host, host['name'], [])
-        rr += generate_host_entry(host, host['name'] + "-bridge", [
-            '    ControlMaster auto',
-            '    ControlPath ~/.ssh/control:%h:%p:%r'
-        ])
-    
         if host.get('containers'):
             rr += 'host {}-ports\n'.format(host['name'])
             if not 'HostName' in six.viewkeys(host):

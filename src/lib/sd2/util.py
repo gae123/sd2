@@ -84,7 +84,7 @@ def remote_system(remote_host, cmd):
     if isinstance(cmd, (list, tuple)):
         cmd = " ".join(cmd)
     if remote_host and not is_localhost(remote_host):
-        cmd = "ssh {}-bridge '{}'".format(remote_host, cmd)
+        cmd = "ssh {} {} '{}'".format(ssh_control_args(), remote_host, cmd)
         if not is_host_healthy(remote_host):
             logging.debug("RSYS SKIP: " + cmd)
             return
@@ -100,7 +100,7 @@ def remote_subprocess_check_output(remote_host, cmd):
     if isinstance(cmd, (list, tuple)):
         cmd = " ".join(cmd)
     if remote_host and not is_localhost(remote_host):
-        cmd = "ssh {}-bridge '{}'".format(remote_host, cmd)
+        cmd = "ssh {} {} '{}'".format(ssh_control_args(), remote_host, cmd)
     if not is_host_healthy(remote_host):
         logging.debug("RSCO SKIP: " + cmd)
         return ''
@@ -120,7 +120,7 @@ def remote_path_exists(remote_host, path):
     if is_localhost(remote_host):
         return os.path.exists(path)
     else:
-        cmd = "ssh {}-bridge '[ -e {} ] && echo yes'".format(remote_host, path)
+        cmd = "ssh {} {} '[ -e {} ] && echo yes'".format(ssh_control_args(), remote_host, path)
         output = subprocess.check_output(cmd, shell=True)
         return output.rstrip() == 'yes'
 
@@ -132,3 +132,10 @@ def system(what, cmd):
         logging.info(output)
     except subprocess.CalledProcessError as ex:
         logging.error("FAILED: rc=%d '%s'", ex.returncode, ex.output)
+
+
+def ssh_control_args(master=False):
+    return '-o ControlMaster={} -o  ControlPath=~/.ssh/control:%h:%p:%r'.format(
+        'yes' if master else 'no'
+    )
+

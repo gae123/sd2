@@ -72,9 +72,9 @@ class SSHConnections(Connections):
                     '_digest': digest(host)
                 }
                 self.hosts_to_ssh[host['name'] + '-bridge'] = {
-                    'name': host['name'] + '-bridge',
+                    'name': host['name'],
                     'health_name': host['name'],
-                    'sshcmd': 'ssh -T ' + host['name'] + '-bridge',
+                    'sshcmd': 'ssh {} -T '.format(util.ssh_control_args(True)) + host['name'],
                     'ssh': {
                         'proc': None
                     },

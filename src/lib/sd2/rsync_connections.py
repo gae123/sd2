@@ -9,7 +9,7 @@ import fcntl
 import subprocess
 import os
 
-from .util import kill_subprocess_process
+from .util import kill_subprocess_process, ssh_control_args
 from .workspace import Workspace
 from .connections import Connections
 from .host_health import set_host_unhealthy, is_host_healthy
@@ -42,11 +42,11 @@ def get_rsync_cmd(ws, host, args):
         cmd.append('--force-delete')
     if not args.nossh:
         cmd.append('-e')
-        cmd.append('ssh')
+        cmd.append('ssh {}'.format(ssh_control_args()))
     path = os.path.join(ws['source_root'], ws.get("source", ""))
     cmd.append(slash_ending(path))
     dest_root = ws.get('dest_root', ws['source_root']).replace(os.environ.get('HOME'), '~')
-    cmd.append("{}-bridge:{}".format(host['name'],
+    cmd.append("{}:{}".format(host['name'],
             slash_ending(os.path.join(dest_root, ws.get("source", "")))))
     return cmd
 
