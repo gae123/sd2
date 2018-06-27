@@ -85,10 +85,10 @@ class DockerConnections(Connections):
                     events.emit(
                         {"hostname": host['name'], "action": "start"})
 
-        # Every 5 minutes repeat
+        # Every 20 repeat
         if (host.get('last_connection') and
                     (datetime.datetime.now() - host[
-                        'last_connection']).seconds > 60):
+                        'last_connection']).seconds > 20):
             host['need_connection'] = 1
         if host.get('need_connection') == 0:
             return
