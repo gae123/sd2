@@ -6,7 +6,7 @@ import os
 import logging
 import subprocess
 
-from .host_health import set_host_unhealthy, is_host_healthy
+from .host_health import set_host_health, is_host_healthy
 
 # def resync_reg_exp_match(root, apath, ipath):
 #     if not apath.startswith(root):
@@ -91,8 +91,8 @@ def remote_system(remote_host, cmd):
     logging.debug("RSYS: " + cmd)
     rr = os.system(cmd)
     logging.debug("RSYS: {} rr={}".format(cmd, rr))
-    if rr == 255 and not is_localhost(remote_host):
-        set_host_unhealthy(remote_host)
+    set_host_health(remote_host,
+        not(rr == 255 and not is_localhost(remote_host)))
     return rr
 
 
@@ -109,8 +109,7 @@ def remote_subprocess_check_output(remote_host, cmd):
     try:
         output = subprocess.check_output(cmd, shell=True)
     except subprocess.CalledProcessError as ex:
-        if ex.returncode == 255:
-            set_host_unhealthy(remote_host)
+        set_host_health(remote_host, ex.returncode != 255)
         logging.error("RSCO FAILED cmd=%s rc=%d '%s'", cmd, ex.returncode, ex.output)
         return ''
     return output

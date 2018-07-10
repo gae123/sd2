@@ -12,7 +12,7 @@ import six
 
 from .util import kill_subprocess_process
 from .connections import Connections
-from .host_health import set_host_unhealthy, is_host_healthy
+from .host_health import set_host_unhealthy, is_host_healthy, set_host_healthy
 from . import myhosts
 
 ON_POSIX = 'posix' in sys.builtin_module_names
@@ -81,11 +81,12 @@ class DockerConnections(Connections):
                 if proc.returncode == 12:
                     set_host_unhealthy(host['name'])
                 elif proc.returncode == 0:
+                    set_host_healthy(host['name'])
                     from .events import events
                     events.emit(
                         {"hostname": host['name'], "action": "start"})
 
-        # Every 20 repeat
+        # Every 20 seconds repeat
         if (host.get('last_connection') and
                     (datetime.datetime.now() - host[
                         'last_connection']).seconds > 20):

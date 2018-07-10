@@ -18,7 +18,7 @@ from . import myhosts
 from . import util
 from . import gen_ssh_config
 from .connections import Connections
-from .host_health import set_host_unhealthy, is_host_healthy
+from .host_health import set_host_health, is_host_healthy
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -110,8 +110,9 @@ class SSHConnections(Connections):
                     log("SSH:RC %s=%s",
                                  host['sshcmd'],
                                  host['ssh']['proc'].returncode)
-                    if host['ssh']['proc'].returncode in (12, 255):
-                        set_host_unhealthy(host['health_name'])
+                    set_host_health(host['health_name'],
+                        not host['ssh']['proc'].returncode in (12, 255))
+                        
                     host['ssh']['proc'] = None
                 # Only try to start once every 30 seconds
                 if (host['ssh'].get('last_connection') and

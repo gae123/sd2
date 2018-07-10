@@ -12,7 +12,7 @@ import os
 from .util import kill_subprocess_process, ssh_control_args
 from .workspace import Workspace
 from .connections import Connections
-from .host_health import set_host_unhealthy, is_host_healthy
+from .host_health import set_host_health, is_host_healthy
 from . import myhosts
 
 ON_POSIX = 'posix' in sys.builtin_module_names
@@ -95,8 +95,7 @@ class RsyncConnections(Connections):
                 host['rsyncproc'] = None
                 host['lastsync'] = datetime.datetime.now()
                 host['lastrc'] = proc.returncode
-                if proc.returncode != 0:
-                    set_host_unhealthy(host['name'])
+                set_host_health(host['name'], proc.returncode == 0)  
 
         # Every 15 minutes rsync
         period = 15*60 if host.get('lastrc',1) == 0 else 30
