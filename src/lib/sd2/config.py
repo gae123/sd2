@@ -204,6 +204,13 @@ def _merge_into(config_dct, dct):
         else:
             config_dct[key] = val
 
+def ensure_config(config_dct):
+    """Initialize the configuration section with defaults"""
+    _merge_into(config_dct, {
+        "config": {
+            "HaltOnSuspendResume": True
+        }
+    })
 
 def read_config():
     global g_root_dir, initial_timestamp
@@ -249,6 +256,7 @@ def read_config():
     process_expansions(config_dct)
     validate(config_dct)
     ensure_base(config_dct['hosts'])
+    ensure_config(config_dct)
     #print json.dumps(config_dct, indent=2)
     config_dct['read_timestamp'] = get_max_timestamp()
     return config_dct

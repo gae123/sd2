@@ -4,6 +4,17 @@
   "title": "root",
   "type": "object",
   "properties":  {
+    "config": {
+      "title": "sd2 configuration",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "HaltOnSuspendResume": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
     "images": {
       "title": "Your docker images",
       "type": "array",

@@ -75,7 +75,13 @@ def main():
         rsyncers = RsyncConnections(g_args, g_workspaces)
         dockers = DockerConnections(g_args, g_workspaces)
         
+        last_time = datetime.datetime.now()
         while True:
+            now = datetime.datetime.now()
+            if config_dct["config"]["HaltOnSuspendResume"]:
+                if now - last_time > datetime.timedelta(seconds=60):
+                    raise Exception("Timedelta too long: %s", now - last_time)
+            last_time = now
             if sd2.has_timestamp_changed(config_dct):
                 raise RestartEcxeption()
             host_connections.poll()
