@@ -25,7 +25,7 @@ def set_host_unhealthy(hostname):
 
 
 def set_host_healthy(hostname):
-    logging.warning("SHOH %s", hostname)
+    logging.debug("SHOH %s", hostname)
     entry = unhealthy_hosts.get(hostname)
     if entry is None:
         entry = {
