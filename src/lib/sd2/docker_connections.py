@@ -82,9 +82,9 @@ class DockerConnections(Connections):
                     set_host_unhealthy(host['name'])
                 elif proc.returncode == 0:
                     set_host_healthy(host['name'])
-                    from .events import events
-                    events.emit(
-                        {"hostname": host['name'], "action": "start"})
+                    # from .events import events
+                    # events.emit(
+                    #     {"hostname": host['name'], "action": "start"})
 
         # Every 20 seconds repeat
         if (host.get('last_connection') and

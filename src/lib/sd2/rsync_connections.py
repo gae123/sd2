@@ -61,8 +61,12 @@ class RsyncConnections(Connections):
                 logging.info('RSYNC:SKIP {} '.format(wsi['name']))
                 continue
             for host in Workspace(wsi).get_targets():
-                self._workspaces.append(wsi)
+                if not wsi in self._workspaces:
+                    self._workspaces.append(wsi)
         self._listener = events.listen()
+        # for x in self._workspaces:
+        #     print {'name': x['name'], 'source_root': x['source_root'], 'targets': x['targets']} 
+        # sys.exit(0)
 
     def handle_host(self, wsi, host):
         if self._args.hosts and not host['name'] in self._args.hosts:
@@ -126,6 +130,7 @@ class RsyncConnections(Connections):
         from .events import events
         while events.is_event_pending(self._listener):
             event = events.get_pending_event(self._listener)
+            logging.debug("RSYNC EV %s", event)
             if event["action"] != "start":
                 continue
             for wsi in self._workspaces:
