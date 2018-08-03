@@ -144,7 +144,7 @@ def process_inheritance(config_dct, keys):
                     rr[key] = copy.deepcopy(extend_host[key])
         return rr
 
-    for tlkey in keys:
+    for tlkey in keys:  # e.g workspaces
         hostsdict = {x['name']: x for x in config_dct.get(tlkey, [])}
         dfsnodes = _dfs(config_dct.get(tlkey, []))
         #print [x['name'] for x in dfsnodes]

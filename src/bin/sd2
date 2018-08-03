@@ -142,18 +142,29 @@ def add_argument_parsing(subparsers):
 
 
 def add_stop_argument_parsing(subparsers):
-    def sd2_stop_daemon(g_args):
+    def sd2_stop_daemon(g_args, exit_after=True):
         if os.path.isfile(g_pidfile):
             rr = os.system("kill `cat {}`".format(g_pidfile))
         else:
             print("sd2 does not appear to be running")
             rr = 0
-        sys.exit(rr)
+        if exit_after:
+            sys.exit(rr)
+    def sd2_restart_daemon(g_args):
+        sd2_stop_daemon(g_args, exit_after=False)
+        logging.info(sys.argv[0])
+        rr = os.system(sys.argv[0])
+        sys.exit(rr)    
     parser_run = subparsers.add_parser(
         'halt',
         description="Stop the daemon"
     )
     parser_run.set_defaults(func=sd2_stop_daemon, logging=False)
+    parser_run = subparsers.add_parser(
+        'restart',
+        description="Restart the daemon"
+    )
+    parser_run.set_defaults(func=sd2_restart_daemon, logging=False)
     
 
 def add_logs_argument_parsing(subparsers):
@@ -246,7 +257,7 @@ def parse_arguments():
     # the best I can think of right now.
     found = False
     for arg in sys.argv:
-        if arg in ['cont', 'init', 'run', 'halt', 'logs']:
+        if arg in ['cont', 'init', 'run', 'halt', 'logs', 'restart']:
             found = True
     if not found:
         sys.argv.append('run')
