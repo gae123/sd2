@@ -51,7 +51,7 @@ def kill_subprocess_process(proc, label=''):
         if proc.returncode is not None:
             return
         #proc.kill()
-        os.system("sudo kill {}".format(proc.pid))
+        os.system("sudo pkill -P {}".format(proc.pid))
         logging.debug("KILL %s %s", label, proc.pid)
     except:
         logging.warning("KILL:FAIL %s", label)
@@ -66,7 +66,7 @@ def _our_host_name():
     def our_host_name_inner(o):
         def fn():
             if o.our_host_name is None:
-                o.our_host_name = subprocess.check_output('hostname').rstrip().split('.')[0]
+                o.our_host_name = subprocess.check_output('hostname').decode('ascii').rstrip().split('.')[0]
             return o.our_host_name
         return fn
     return our_host_name_inner(o)

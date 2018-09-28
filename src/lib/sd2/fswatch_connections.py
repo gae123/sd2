@@ -133,6 +133,14 @@ class FSWatcher(Connections):
                    # "--exclude='\.idea/.*'",
                    # "--exclude='\.git/.*'"
                    ]
+            linux_cmd = ['--event Created',
+                         '--event Updated',
+                         '--event Removed',
+                         '--allow-overflow'
+                        ]
+            if subprocess.check_output('uname').decode('ascii').strip() == 'Linux':
+                logging.info("FSW: setting extra flags for Linux")
+                cmd.extend(linux_cmd)
             paths_to_watch = []
             if not host or set(host).intersection(
                     [x['name'] for x in Workspace(wi).get_targets()]):
@@ -156,33 +164,32 @@ class FSWatcher(Connections):
             logging.info("%s %s", wi['name'], strcmd)
             wi['fswatchproc'] = subprocess.Popen(
                 strcmd,
-                shell=True,
-                bufsize=1,  # line buffered
+                shell=True, # with this option the pid returned is of the shell: https://docs.python.org/2/library/subprocess.html#subprocess.Popen.pid
+                bufsize=1, # line buffered
                 stdout=subprocess.PIPE,
                 # stderr=subprocess.PIPE,
                 close_fds=ON_POSIX
             )
             fl = fcntl.fcntl(wi['fswatchproc'].stdout, fcntl.F_GETFL)
-            fcntl.fcntl(wi['fswatchproc'].stdout, fcntl.F_SETFL,
-                        fl | os.O_NONBLOCK)
+            fcntl.fcntl(wi['fswatchproc'].stdout, fcntl.F_SETFL, fl | os.O_NONBLOCK)
         logging.debug("FSW:LL")
 
     def poll(self):
         for ws in self._workspaces:
             proc = ws['fswatchproc']
             try:
-                line = proc.stdout.readline().strip()
+                line = proc.stdout.readline()
+                logging.debug('FSWATCH:CONS %s %s', ws['name'], line)
+                path_events = line.strip().split()
+                path = path_events[0]
+                events = path_events[1:]
+                deal_with_changed_file(ws, path, events, self._args)
             except IOError:
                 continue
-            path_events = line.split()
-            path = path_events[0]
-            events = path_events[1:]
-            logging.debug('CONS %s %s', ws['name'], line)
-            deal_with_changed_file(ws, path, events, self._args)
 
     def shutdown(self):
         for wi in self._workspaces:
             proc = wi['fswatchproc']
-            kill_subprocess_process(proc, "FSWATH {}".format(wi['name']))
+            kill_subprocess_process(proc, "FSWATCH {}".format(wi['name']))
 
 

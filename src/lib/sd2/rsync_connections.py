@@ -110,7 +110,7 @@ class RsyncConnections(Connections):
         if host.get('needsync') == 0:
             return
         if not is_host_healthy(host['name']):
-            logging.warning("RSYNC SKIP {}".format(host['name']))
+            logging.warning("RSYNC: SKIP {}".format(host['name']))
             host['needsync'] = 0
             host['lastsync'] = datetime.datetime.now()
             return
