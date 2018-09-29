@@ -180,13 +180,13 @@ class FSWatcher(Connections):
             proc = ws['fswatchproc']
             try:
                 line = proc.stdout.readline()
-                logging.debug('FSWATCH:CONS %s %s', ws['name'], line)
-                path_events = line.strip().split()
-                path = path_events[0]
-                events = path_events[1:]
-                deal_with_changed_file(ws, path, events, self._args)
             except IOError:
                 continue
+            path_events = line.strip().split()
+            path = path_events[0]
+            events = path_events[1:]
+            logging.debug('FSWATCH:CONS %s %s', ws['name'], line)
+            deal_with_changed_file(ws, path, events, self._args)
 
     def shutdown(self):
         for wi in self._workspaces:
