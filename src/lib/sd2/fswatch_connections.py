@@ -165,7 +165,7 @@ class FSWatcher(Connections):
             logging.info("%s %s", wi['name'], strcmd)
             wi['fswatchproc'] = subprocess.Popen(
                 strcmd,
-                shell=True, # with this option the pid returned is of the shell: https://docs.python.org/2/library/subprocess.html#subprocess.Popen.pid
+                shell=True, # with this option the pid returned is of the shell
                 bufsize=1, # line buffered
                 stdout=subprocess.PIPE,
                 # stderr=subprocess.PIPE,

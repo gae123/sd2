@@ -66,7 +66,10 @@ def _our_host_name():
     def our_host_name_inner(o):
         def fn():
             if o.our_host_name is None:
-                o.our_host_name = subprocess.check_output('hostname').decode('ascii').rstrip().split('.')[0]
+                o.our_host_name = subprocess.check_output('hostname') \
+                                            .decode('ascii') \
+                                            .rstrip() \
+                                            .split('.')[0]
             return o.our_host_name
         return fn
     return our_host_name_inner(o)
