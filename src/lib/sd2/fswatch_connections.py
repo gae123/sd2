@@ -7,6 +7,7 @@ import subprocess
 import fcntl
 import os
 import sys
+import platform
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -138,7 +139,7 @@ class FSWatcher(Connections):
                          '--event Removed',
                          '--allow-overflow'
                         ]
-            if subprocess.check_output('uname').decode('ascii').strip() == 'Linux':
+            if platform.system() == 'Linux':
                 logging.info("FSW: setting extra flags for Linux")
                 cmd.extend(linux_cmd)
             paths_to_watch = []
