@@ -67,7 +67,7 @@ def _our_host_name():
         def fn():
             if o.our_host_name is None:
                 o.our_host_name = subprocess.check_output('hostname') \
-                                            .decode('ascii') \
+                                            .decode('utf-8') \
                                             .rstrip() \
                                             .split('.')[0]
             return o.our_host_name
