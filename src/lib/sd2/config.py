@@ -15,6 +15,24 @@ import six
 
 __all__=('config_dct')
 
+def extend_with_default(validator_class):
+    validate_properties = validator_class.VALIDATORS["properties"]
+
+    def set_defaults(validator, properties, instance, schema):
+        for property_, subschema in properties.items():
+            if "default" in subschema:
+                instance.setdefault(property_, subschema["default"])
+
+        for error in validate_properties(
+            validator, properties, instance, schema,
+        ):
+            yield error
+
+    return jsonschema.validators.extend(
+        validator_class, {"properties": set_defaults},
+    )
+DefaultValidatingDraft4Validator = extend_with_default(jsonschema.Draft4Validator)
+
 g_root_dir = os.getenv('SD2_CONFIG_DIR', os.path.join(os.getenv('HOME'), '.sd2'))
 
 from .sd2_config_schema import sd2_config_schema
@@ -96,7 +114,7 @@ def process_containers(dct):
                     "ERROR: host '{}' already has a container with name '{}'.\n". format(
                         host['name'], cont['name']))
 
-        cont_host['containers'].append(cont)    
+        cont_host['containers'].append(cont)
 
 
 def _dfs(lst):
@@ -186,14 +204,13 @@ def validate(config):
     #with open(schema_path, 'r') as ff:
     #    schemajson = ff.read()
     schema = json.loads(sd2_config_schema)
-    validator = jsonschema.Draft4Validator(schema)
+    validator = DefaultValidatingDraft4Validator(schema)
     jsonschema.validate(config, schema)
     if not validator.is_valid(config):
         sys.stderr.write("Error: configuration file is not valid\n")
         for error in validator.iter_errors(config):
             sys.stderr.write(error.message + '\n')
             sys.exit(1)
-    
 
 def _merge_into(config_dct, dct):
     for key,val in six.iteritems(dct):
@@ -203,14 +220,6 @@ def _merge_into(config_dct, dct):
             config_dct[key].extend(val)
         else:
             config_dct[key] = val
-
-def ensure_config(config_dct):
-    """Initialize the configuration section with defaults"""
-    _merge_into(config_dct, {
-        "config": {
-            "HaltOnSuspendResume": True
-        }
-    })
 
 def read_config():
     global g_root_dir, initial_timestamp
@@ -248,15 +257,14 @@ def read_config():
         except yaml.parser.ParserError as ex:
             sys.stderr.write('{}: {}\n'.format(config_file_path, ex))
             sys.exit(1)
-        
+
         _merge_into(config_dct, dct)
-    
+
     process_inheritance(config_dct, ['images', 'hosts', 'workspaces'])
     process_containers(config_dct)
     process_expansions(config_dct)
     validate(config_dct)
     ensure_base(config_dct['hosts'])
-    ensure_config(config_dct)
     #print json.dumps(config_dct, indent=2)
     config_dct['read_timestamp'] = get_max_timestamp()
     return config_dct
