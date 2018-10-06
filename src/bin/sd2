@@ -6,6 +6,7 @@
 import argparse
 import logging
 import os
+import signal
 import sys
 import time
 import sd2
@@ -13,6 +14,9 @@ import json
 import datetime
 import daemon
 import daemon.pidfile
+
+from sd2.rsync_connections import RsyncConnections
+from sd2.docker_connections import DockerConnections
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -27,6 +31,14 @@ g_logfile = '/var/log/sd2/sd2.log'
 class RestartEcxeption(Exception):
     pass
 
+def signalHandler(signum, arg2):
+    logging.info("SIGH {}".format(signum))
+    if (signum == signal.SIGUSR1 and RsyncConnections.singleton):
+        RsyncConnections.singleton.wake()
+    if (signum == signal.SIGUSR2 and DockerConnections.singleton):
+        DockerConnections.singleton.wake()
+signal.signal(signal.SIGUSR1, signalHandler)
+signal.signal(signal.SIGUSR2, signalHandler)
 
 def init():
     logging.info("SD2INIT:EE")
@@ -41,13 +53,13 @@ def init():
         sys.exit(0)
     sd2.myhosts.init(config_dct)
     sd2.gen_all.gen_all()
-    
+
     # if not g_args.nointf:
     #     for host in sd2.myhosts.get_hosts():
     #         if not host.get('containers'):
     #             continue
     #         sd2.gen_interfaces.gen_interfaces(host['name'])
-    
+
     g_workspaces = config_dct['workspaces']
     # Normalize that host can be just a string
     for ws in g_workspaces:
@@ -60,21 +72,24 @@ def init():
 
 
 g_ssh_connections = None
+RsyncConnections.singleton = None
+DockerConnections.singleton = None
+
 def main():
     from sd2.fswatch_connections import FSWatcher
-    from sd2.rsync_connections import RsyncConnections
-    from sd2.docker_connections import DockerConnections
     from sd2.host_connections import HostConnections
-    fswatchers = rsyncers = dockers = host_connections = None
+    fswatchers = host_connections = None
     try:
         config_dct = init()
         host_connections = HostConnections(g_args, g_workspaces)
-        
-        g_ssh_connections.init(g_args) 
+
+        g_ssh_connections.init(g_args)
         fswatchers = FSWatcher(g_args, g_workspaces)
-        rsyncers = RsyncConnections(g_args, g_workspaces)
-        dockers = DockerConnections(g_args, g_workspaces)
-        
+        RsyncConnections.singleton = RsyncConnections(g_args, g_workspaces,
+                    config_dct.get('config', {}).get('RsynCheckPeriodInSeconds', 900))
+        DockerConnections.singleton = DockerConnections(g_args, g_workspaces,
+                    config_dct.get('config', {}).get('DockerCheckPeriodInSeconds', 60))
+
         last_time = datetime.datetime.now()
         while True:
             now = datetime.datetime.now()
@@ -87,18 +102,21 @@ def main():
             host_connections.poll()
             g_ssh_connections.poll()
             fswatchers.poll()
-            rsyncers.poll()
-            dockers.poll()
+            RsyncConnections.singleton.poll()
+            DockerConnections.singleton.poll()
             time.sleep(.1)
+    except Exception as ex:
+        logging.warning("MAIN:LOOP:EX {}".format(ex))
+        raise ex
     finally:
         if g_ssh_connections:
             g_ssh_connections.shutdown()
         if fswatchers:
             fswatchers.shutdown()
-        if rsyncers:
-            rsyncers.shutdown()
-        if dockers:
-            dockers.shutdown()
+        if RsyncConnections.singleton:
+            RsyncConnections.singleton.shutdown()
+        if DockerConnections.singleton:
+            DockerConnections.singleton.shutdown()
 
 
 def sd2_daemon(g_args):
@@ -125,7 +143,7 @@ def sd2_daemon(g_args):
                 main()
             except RestartEcxeption:
                 continue
-            
+
 def add_argument_parsing(subparsers):
     parser_run = subparsers.add_parser(
         'run',
@@ -154,7 +172,7 @@ def add_stop_argument_parsing(subparsers):
         sd2_stop_daemon(g_args, exit_after=False)
         logging.info(sys.argv[0])
         rr = os.system(sys.argv[0])
-        sys.exit(rr)    
+        sys.exit(rr)
     parser_run = subparsers.add_parser(
         'halt',
         description="Stop the daemon"
@@ -165,7 +183,20 @@ def add_stop_argument_parsing(subparsers):
         description="Restart the daemon"
     )
     parser_run.set_defaults(func=sd2_restart_daemon, logging=False)
-    
+
+def add_wake_argument_parsing(subparsers, cmdname, signame):
+    def sd2_wake_activity(g_args):
+        if os.path.isfile(g_pidfile):
+            os.system("kill -s {} `cat {}`".format(signame, g_pidfile))
+        else:
+            print("sd2 does not appear to be running")
+
+    parser_run = subparsers.add_parser(
+        cmdname,
+        description="Immediately start the {} tasks".format(cmdname)
+    )
+    parser_run.set_defaults(func=sd2_wake_activity, logging=False)
+
 
 def add_logs_argument_parsing(subparsers):
     def sd2_logs(g_args):
@@ -187,19 +218,19 @@ def setup_logging():
     os.system("sudo mkdir -p '{}'".format(logDir))
     os.system("sudo chmod 777 '{}'".format(logDir))
     fileName = 'sd2'
-    logFilePath = "{0}/{1}.log".format(logDir, fileName) 
+    logFilePath = "{0}/{1}.log".format(logDir, fileName)
     # if (os.path.exists(logFilePath)):
     #     timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     #     os.system("mv {} {}".format(
     #         logFilePath, logFilePath.replace('.log', '-{}.log'.format(timestamp))))
-    
+
     level = {
      'info': logging.INFO,
      'debug': logging.DEBUG,
      'error': logging.ERROR,
      'warning': logging.WARNING
     }[g_args.level]
-    
+
     logFormatter = logging.Formatter(
         '%(asctime)s %(process)d %(levelname)-8s %(message)s', '%Y-%m-%d %H:%M:%S')
     rootLogger = logging.getLogger()
@@ -209,21 +240,21 @@ def setup_logging():
     map(rootLogger.removeFilter, list(rootLogger.filters[:]))
 
     rootLogger.setLevel(logging.DEBUG)
-    
+
     fileHandler = logging.handlers.TimedRotatingFileHandler(
                                 logFilePath, when='D', backupCount=60)
     fileHandler.setFormatter(logFormatter)
     fileHandler.setLevel(level)
     rootLogger.addHandler(fileHandler)
-    
+
     # consoleHandler = logging.StreamHandler()
     # consoleHandler.setFormatter(logFormatter)
     # consoleHandler.setLevel(level)
     # rootLogger.addHandler(consoleHandler)
 
 intro = '''The tool will parse the configuration files ending
-in config.yaml in {} and will run as  
-a daemon. 
+in config.yaml in {} and will run as
+a daemon.
 Env variables that affect defaults:
 SD2_CONFIG_DIR to look for the configuration files in another directory not ~/.sd2,
 SD2_ETC_HOSTS to output /etc/hosts in a different directory, useful for testing,
@@ -244,24 +275,26 @@ def parse_arguments():
                         help="Just show the JSON schema of the configuration file and exit")
     parser.add_argument('--showconfig', action="store_true", default=False,
                         help="Just show config and exit")
-    
+
     subparsers = parser.add_subparsers()
-    
+
     sd2.gen_all.add_argument_parsing(subparsers)
     sd2.sd2cont.add_argument_parsing(subparsers)
     add_argument_parsing(subparsers)
     add_stop_argument_parsing(subparsers)
     add_logs_argument_parsing(subparsers)
-    
+    add_wake_argument_parsing(subparsers, 'rsync', signal.SIGUSR1)
+    add_wake_argument_parsing(subparsers, 'docker', signal.SIGUSR2)
+
     # Add 'run' as the default argument if it is missing. This is hacky but
     # the best I can think of right now.
     found = False
     for arg in sys.argv:
-        if arg in ['cont', 'init', 'run', 'halt', 'logs', 'restart']:
+        if arg in ['cont', 'init', 'run', 'halt', 'logs', 'restart', 'rsync', 'docker']:
             found = True
     if not found:
         sys.argv.append('run')
-    
+
     g_args = parser.parse_args(sys.argv[1:])
     if g_args.logging:
         setup_logging()
@@ -271,9 +304,9 @@ def parse_arguments():
     if g_args.version:
         print(sd2.__version__)
         sys.exit(0)
-        
+
     logging.info("---------------sd2 %s-------------------", sys.argv)
-        
+
     g_args.func(g_args)
 
 parse_arguments()

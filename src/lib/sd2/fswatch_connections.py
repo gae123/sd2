@@ -74,7 +74,7 @@ def deal_with_changed_file(wi, fpath, events, args):
                     dpath = fpath.replace(os.environ.get('HOME'), '~')
                 if (os.path.exists(fpath)):
                     cmd = "scp {} -p {} {}:{}".format(
-                        ssh_control_args(), 
+                        ssh_control_args(),
                         fpath,
                         target['name'],
                         dpath)
@@ -83,14 +83,16 @@ def deal_with_changed_file(wi, fpath, events, args):
                     logging.info(cmd)
                     if is_host_healthy(target['name']):
                         try:
-                            output = subprocess.check_output(cmd, 
+                            output = subprocess.check_output(cmd,
                                 stderr=subprocess.STDOUT,
                                 close_fds=ON_POSIX,
                                 shell=True)
                             if output:
                                 logging.info("SCP: {}".format(output))
                         except subprocess.CalledProcessError as ex:
+                            from sd2.rsync_connections import RsyncConnections
                             logging.info("SCP:ERR %s", ex)
+                            RsyncConnections.singleton.wake(wi)
                             # Hmmm the return code here is 1 for everything...
                             #if ex.returncode == 255:
                             #    set_host_unhealthy(target['name'])

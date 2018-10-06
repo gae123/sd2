@@ -8,10 +8,19 @@
       "title": "sd2 configuration",
       "type": "object",
       "additionalProperties": false,
+      "default": {},
       "properties": {
         "HaltOnSuspendResume": {
           "type": "boolean",
           "default": true
+        },
+        "RsynCheckPeriodInSeconds": {
+          "type": "number",
+          "default": 900
+        },
+        "DockerCheckPeriodInSeconds": {
+          "type": "number",
+          "default": 60
         }
       }
     },
@@ -151,7 +160,7 @@
       "properties": {
         "name": {"type": "string"},
         "docker_image_name": {
-            "type": "string", 
+            "type": "string",
             "description": "The docker image name"
         },
         "docker_auth": {
@@ -234,7 +243,7 @@
                 "anyOf": [
                     {
                         "type": "string"
-                    }, 
+                    },
                     {
                         "$ref":  "#/definitions/desthost"
                     }

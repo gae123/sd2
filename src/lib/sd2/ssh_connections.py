@@ -24,7 +24,7 @@ ON_POSIX = 'posix' in sys.builtin_module_names
 
 def digest(obj):
     rr = []
-    for option in (gen_ssh_config.ssh_option_names + 
+    for option in (gen_ssh_config.ssh_option_names +
         ['disabled', 'enabled', 'name', 'base', 'sudo_ssh']):
         if obj.get(option):
             rr.append(obj.get(option))
@@ -56,12 +56,12 @@ class SSHConnections(Connections):
                 continue
             if not args.hosts or host['name'] in args.hosts:
                 host['needsync'] = 1
-                
+
                 if host.get('sudo_ssh'):
                     sshcmd = "sudo ssh -F {}/.ssh/config".format(os.getenv('HOME'))
                 else:
                     sshcmd = "ssh"
-                    
+
                 self.hosts_to_ssh[host['name'] + '-ports'] = {
                     'name': host['name'] + '-ports',
                     'health_name': host['name'],
@@ -81,14 +81,14 @@ class SSHConnections(Connections):
                     '_digest': digest(host)
                 }
         for name,host in six.iteritems(previous_hosts_to_ssh):
-            if (self.hosts_to_ssh.get(name) and  
+            if (self.hosts_to_ssh.get(name) and
                 self.hosts_to_ssh.get(name)['_digest'] == host['_digest']):
                 self.hosts_to_ssh.get(name)['ssh'] = host['ssh']
                 logging.debug("Reusing host {}".format(name))
                 continue
             logging.info("Shutting down ssh to host '{}'".format(name))
             proc = host['ssh']['proc']
-            kill_subprocess_process(proc, "SSH {}".format(host['name']))    
+            kill_subprocess_process(proc, "SSH {}".format(host['name']))
 
     def poll(self):
         for host in six.viewvalues(self.hosts_to_ssh):
@@ -112,7 +112,7 @@ class SSHConnections(Connections):
                                  host['ssh']['proc'].returncode)
                     set_host_health(host['health_name'],
                         not host['ssh']['proc'].returncode in (12, 255))
-                        
+
                     host['ssh']['proc'] = None
                 # Only try to start once every 30 seconds
                 if (host['ssh'].get('last_connection') and

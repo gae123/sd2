@@ -52,8 +52,11 @@ def get_rsync_cmd(ws, host, args):
 
 
 class RsyncConnections(Connections):
-    def __init__(self, args, workspaces):
+    singleton = None
+    def __init__(self, args, workspaces, periodInSeconds):
+        logging.info("RSYNC:CONSTR:EE {}".format(periodInSeconds))
         from .events import events
+        self.periodInSeconds = periodInSeconds
         self._args = args
         self._workspaces = []
         for wsi in workspaces:
@@ -65,7 +68,7 @@ class RsyncConnections(Connections):
                     self._workspaces.append(wsi)
         self._listener = events.listen()
         # for x in self._workspaces:
-        #     print {'name': x['name'], 'source_root': x['source_root'], 'targets': x['targets']} 
+        #     print {'name': x['name'], 'source_root': x['source_root'], 'targets': x['targets']}
         # sys.exit(0)
 
     def handle_host(self, wsi, host):
@@ -74,7 +77,7 @@ class RsyncConnections(Connections):
         if not myhosts.is_enabled(host['name']):
             #logging.debug("RSYNC:SKIP {}".format(host['name']))
             return
-        
+
         proc = host.get('rsyncproc')
         if proc:
             proc.poll()
@@ -99,10 +102,10 @@ class RsyncConnections(Connections):
                 host['rsyncproc'] = None
                 host['lastsync'] = datetime.datetime.now()
                 host['lastrc'] = proc.returncode
-                set_host_health(host['name'], proc.returncode == 0)  
+                set_host_health(host['name'], proc.returncode == 0)
 
         # Every 15 minutes rsync
-        period = 15*60 if host.get('lastrc',1) == 0 else 30
+        period = self.periodInSeconds if host.get('lastrc',1) == 0 else 30
         if (host.get('lastsync') and
                     (datetime.datetime.now() - host[
                         'lastsync']).seconds > period):
@@ -137,7 +140,7 @@ class RsyncConnections(Connections):
                 for host in Workspace(wsi).get_targets():
                     if host['name'].startswith(event['hostname']):
                         host['needsync'] = 1
-        
+
         for wsi in self._workspaces:
             for host in Workspace(wsi).get_targets():
                 self.handle_host(wsi, host)
@@ -149,4 +152,12 @@ class RsyncConnections(Connections):
                 kill_subprocess_process(
                     proc,
                     "RSYNC {} {}".format(host['name'], wsi['name']))
+
+    def wake(self, workspace=None):
+        for wsi in self._workspaces:
+            if workspace and wsi != workspace:
+                continue
+            for host in Workspace(wsi).get_targets():
+                host['needsync'] = 1
+
 

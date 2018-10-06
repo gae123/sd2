@@ -22,11 +22,14 @@ g_workspaces = None
 
 
 class DockerConnections(Connections):
+    singleton = None
     host_to_contact = None
-    def __init__(self, args, workspaces):
+    def __init__(self, args, workspaces, periodInSeconds):
         global g_args, g_workspaces
+        logging.info("DOCK:CONSTR:EE {}".format(periodInSeconds))
         g_args = args
         g_workspaces = workspaces
+        self.periodInSeconds = periodInSeconds
         self.host_to_contact = {}
         for host in myhosts.get_hosts():
             if not myhosts.get_container_names(host['name']):
@@ -39,7 +42,7 @@ class DockerConnections(Connections):
                     'need_connection': 1,
                     'cmd': self.get_cmd(host)
                 }
-        
+
     def get_cmd(self, host):
         rr = [sys.argv[0]]
         rr.extend([
@@ -86,10 +89,10 @@ class DockerConnections(Connections):
                     # events.emit(
                     #     {"hostname": host['name'], "action": "start"})
 
-        # Every 20 seconds repeat
+        # Every so many seconds repeat
         if (host.get('last_connection') and
                     (datetime.datetime.now() - host[
-                        'last_connection']).seconds > 20):
+                        'last_connection']).seconds > self.periodInSeconds):
             host['need_connection'] = 1
         if host.get('need_connection') == 0:
             return
@@ -119,3 +122,7 @@ class DockerConnections(Connections):
             kill_subprocess_process(
                 proc,
                 "DOCKER {} ".format(host['name']))
+
+    def wake(self):
+        for host in six.viewvalues(self.host_to_contact):
+            host['need_connection'] = 1
