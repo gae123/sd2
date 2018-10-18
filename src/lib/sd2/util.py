@@ -52,16 +52,17 @@ def kill_subprocess_process(proc, label=''):
             return
         #proc.kill()
         os.system("sudo pkill -P {}".format(proc.pid))
+        os.system("sudo kill {}".format(proc.pid))
         logging.debug("KILL %s %s", label, proc.pid)
     except:
         logging.warning("KILL:FAIL %s", label)
         pass
-    
+
 # Closure to cache local host name and avoid local
 def _our_host_name():
     class O(object):
         our_host_name = None
-        
+
     o = O()
     def our_host_name_inner(o):
         def fn():
