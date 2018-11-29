@@ -85,10 +85,12 @@ def main():
 
         g_ssh_connections.init(g_args)
         fswatchers = FSWatcher(g_args, g_workspaces)
-        RsyncConnections.singleton = RsyncConnections(g_args, g_workspaces,
-                    config_dct.get('config', {}).get('RsynCheckPeriodInSeconds', 900))
-        DockerConnections.singleton = DockerConnections(g_args, g_workspaces,
-                    config_dct.get('config', {}).get('DockerCheckPeriodInSeconds', 60))
+        if (not config_dct.get('config')):
+            raise EnvironmentError("config section of configuration is missing")
+        rsynCheckPeriod = config_dct["config"]["RsynCheckPeriodInSeconds"]
+        RsyncConnections.singleton = RsyncConnections(g_args, g_workspaces,rsynCheckPeriod)
+        dockerCheckPeriod = config_dct["config"]["DockerCheckPeriodInSeconds"]
+        DockerConnections.singleton = DockerConnections(g_args, g_workspaces, dockerCheckPeriod)
 
         last_time = datetime.datetime.now()
         while True:
@@ -106,7 +108,7 @@ def main():
             DockerConnections.singleton.poll()
             time.sleep(.1)
     except Exception as ex:
-        logging.warning("MAIN:LOOP:EX {}".format(ex))
+        logging.warning("MAIN:LOOP:EX {} {}".format(type(ex), ex))
         raise ex
     finally:
         if g_ssh_connections:

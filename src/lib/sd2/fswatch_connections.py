@@ -179,16 +179,30 @@ class FSWatcher(Connections):
 
     def poll(self):
         for ws in self._workspaces:
+            # We only deal with the first few lines here, if too many files
+            # changed we let rsync deal with it.
+            max_number_of_changes = 10
             proc = ws['fswatchproc']
+            lines = []
             try:
-                line = proc.stdout.readline()
+                for ii in range(1000):
+                    line = proc.stdout.readline()
+                    lines.append(line)
             except IOError:
+                if not lines:
+                    continue
+            if (len(lines) > max_number_of_changes):
+                from sd2.rsync_connections import RsyncConnections
+                logging.info("FSWATCH:POLL:TOOMANY {}".format(len(lines)))
+                RsyncConnections.singleton.wake(ws)
                 continue
-            path_events = line.strip().split()
-            path = path_events[0]
-            events = path_events[1:]
-            logging.debug('FSWATCH:CONS %s %s', ws['name'], line)
-            deal_with_changed_file(ws, path, events, self._args)
+            for line in lines[0:max_number_of_changes]:
+                path_events = line.strip().split()
+                path = path_events[0]
+                events = path_events[1:]
+                logging.debug('FSWATCH:CONS %s %s', ws['name'], line)
+                deal_with_changed_file(ws, path, events, self._args)
+
 
     def shutdown(self):
         for wi in self._workspaces:
