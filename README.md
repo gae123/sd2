@@ -173,8 +173,12 @@ way to separate the configuration of unrelated projects.
 1. Start the command as `sd2 --showconfig`. It will show the config file
 as it is after substitutions and will exit.
 1. Start the daemon by running `sd2`. You can see logs running `sd2 logs`
-1. Start the command as `sd2 --showschema`. It will show the json schema file.
-1. Try to ssh to the DHs. You should be able to ssh to any of them from a 
+    1. The logs rotate every time you restart sd2. You can find the current log
+    file in `/var/logs/sd2/sd2.log`, the previous one in `sd2.log.1` etc
+    2. Look for the events starting with `HH:` to see whether the hosts are 
+       reported healthy as expected.
+2. Start the command as `sd2 --showschema`. It will show the json schema file.
+3. Try to ssh to the DHs. You should be able to ssh to any of them from a 
 terminal in your EH.
 1. You can access a container in a DH with the following command:  
 `ssh -t <<DH>> sudo docker exec -it <<CONTAINER NAME>>  su - $USER`  

@@ -136,7 +136,7 @@ def sd2_daemon(g_args):
         stderr=stderr,
         pidfile=daemon.pidfile.PIDLockFile(g_pidfile)
         ):
-        setup_logging()
+        setup_logging().doRollover()
         from sd2.ssh_connections import SSHConnections
         global g_ssh_connections
         g_ssh_connections = SSHConnections(g_args)
@@ -203,7 +203,7 @@ def add_wake_argument_parsing(subparsers, cmdname, signame):
 def add_logs_argument_parsing(subparsers):
     def sd2_logs(g_args):
         print("Logs are in " + g_logfile)
-        os.system("tail -f {}".format(g_logfile))
+        os.system("tail -F {}".format(g_logfile))
         sys.exit(0)
 
     parser_run = subparsers.add_parser(
@@ -243,16 +243,17 @@ def setup_logging():
 
     rootLogger.setLevel(logging.DEBUG)
 
-    fileHandler = logging.handlers.TimedRotatingFileHandler(
-                                logFilePath, when='D', backupCount=60)
+    fileHandler = logging.handlers.RotatingFileHandler(
+                                logFilePath, backupCount=100)
     fileHandler.setFormatter(logFormatter)
     fileHandler.setLevel(level)
     rootLogger.addHandler(fileHandler)
-
+    
     # consoleHandler = logging.StreamHandler()
     # consoleHandler.setFormatter(logFormatter)
     # consoleHandler.setLevel(level)
     # rootLogger.addHandler(consoleHandler)
+    return fileHandler
 
 intro = '''The tool will parse the configuration files ending
 in config.yaml in {} and will run as
