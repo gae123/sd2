@@ -12,7 +12,7 @@ unhealthy_hosts = {}
 
 
 def set_host_unhealthy(hostname):
-    logging.warning("SHOU %s", hostname)
+    logging.warning("HH:SHOU %s", hostname)
     entry = unhealthy_hosts.get(hostname)
     if entry is None:
         entry = {
@@ -22,10 +22,11 @@ def set_host_unhealthy(hostname):
         unhealthy_hosts[hostname] = entry 
     entry["failures"] += 1
     entry["timestamp"] = time.time()
+    logging.warning("HH:SHOU:LL {} {}".format(hostname, entry))
 
 
 def set_host_healthy(hostname):
-    logging.debug("SHOH %s", hostname)
+    logging.debug("HH:SHOH %s", hostname)
     entry = unhealthy_hosts.get(hostname)
     if entry is None:
         entry = {
@@ -41,12 +42,13 @@ def is_host_healthy(hostname):
     hostentry = unhealthy_hosts.get(hostname)
     if hostentry is None:
         return True  
-    if time.time() - hostentry['timestamp'] > 60 * 60:
-        del unhealthy_hosts[hostname]
-        return True
-    if hostentry['failures'] < 3: 
-        return True  
-    return False
+    if (hostentry.get('failures') and 
+        (time.time() - hostentry['timestamp']) < min(60 * 60, 2 ^ hostentry['failures'])) :
+        logging.warning("HH:IHOU {} {}".format(hostname, hostentry))
+        return False
+    
+    return True
+
 
 def set_host_health(hostname, is_healthy):
     if is_healthy:
