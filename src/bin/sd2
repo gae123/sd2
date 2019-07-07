@@ -165,6 +165,8 @@ def add_stop_argument_parsing(subparsers):
     def sd2_stop_daemon(g_args, exit_after=True):
         if os.path.isfile(g_pidfile):
             rr = os.system("kill `cat {}`".format(g_pidfile))
+            if rr:
+                os.system("rm -f {}".format(g_pidfile))
         else:
             print("sd2 does not appear to be running")
             rr = 0
