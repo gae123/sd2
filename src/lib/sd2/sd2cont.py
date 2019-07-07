@@ -30,6 +30,7 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
     ports.append("{}:22".format(sshport))
     ns_host_ports = ' '.join(['{}:{}'.format(ns_host_ip,x) for x in ports])
     ns_extra_args = myhosts.get_container_extra_flags(container_host_name)
+    ns_aliases = myhosts.get_container_aliases(container_host_name)
 
     cmd.extend([
         'sudo',
@@ -40,6 +41,9 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
         "--name={}".format(container_host_name),
         "--hostname={}".format(container_host_name),
     ])
+    for alias in ns_aliases:
+        cmd.append("--add-host='{alias}:{ip}'".format(alias=alias, ip=ns_host_ip))
+
     if myhosts.get_container_mount_home_dir(container_host_name):
         cmd.extend(["--volume", "$HOME:/home/$USER"])
     if util.remote_path_exists(host_name, '/mnt'):

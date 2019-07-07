@@ -152,6 +152,12 @@ def get_container_ip(containerName):
     cont = containersdict[containerName]
     return cont['ip']
 
+def get_container_aliases(containerName):
+    if not initialized:
+        init()
+    cont = containersdict[containerName]
+    return cont['aliases']
+
 def get_container_names(hostname):
     if not initialized:
         init()

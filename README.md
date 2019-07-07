@@ -236,4 +236,7 @@ sure people would want a Windows port.
 1. Fork the repository
 1. Build the source code by running `cd build; make`
 1. The main program is in bin/sd2 start from there for testing personal user
-1. When ready to push change the version number at the top of build/Makefile and run `make push`
+1. When ready to push:
+   1.  change the version number at the top of build/Makefile
+   2.  commit all changes
+   3.  run `make push`
