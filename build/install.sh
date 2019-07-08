@@ -29,7 +29,7 @@ sudo $PIP install jinja2
 sudo $PIP install pyinstaller
 sudo $PIP install pyyaml
 sudo $PIP install python-daemon
-sudo $PIP install jsonschema
+sudo $PIP install jsonschema==2.6.0
 sudo $PIP install pylint
 sudo $PIP install pytest
 type pyinstaller
