@@ -235,6 +235,7 @@ sure people would want a Windows port.
 ## How to develop the tool itself
 1. Fork the repository
 1. Build the source code by running `cd build; make`
+1. Add the full path to the src/lib directory in the PYTHONPATH env variable by running `export PYTHONPATH=/path/to/sd2/src/lib` (also consider adding it to your profile or bashrc)
 1. The main program is in bin/sd2 start from there for testing personal user
 1. When ready to push:
    1.  change the version number at the top of build/Makefile
