@@ -47,7 +47,10 @@ ssh_option_names = [
     "PKCS11Provider",
     'SmartcardDevice',
     'HostKeyAlias',
-    'LocalForward'
+    'LocalForward',
+    'RemoteForward',
+    'PubkeyAuthentication',
+    'PreferredAuthentications'
 ]
 ssh_option_names.extend(container_ssh_option_names)
 
