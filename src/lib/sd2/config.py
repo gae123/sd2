@@ -253,7 +253,7 @@ def read_config():
             with open(os.path.join(g_root_dir, name)) as fd:
                 output = fd.read()
         try:
-            dct = yaml.load(output)
+            dct = yaml.safe_load(output)
         except yaml.parser.ParserError as ex:
             sys.stderr.write('{}: {}\n'.format(config_file_path, ex))
             sys.exit(1)
