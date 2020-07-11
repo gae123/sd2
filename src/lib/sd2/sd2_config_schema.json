@@ -126,6 +126,13 @@
             "type": "string"
           }
         },
+        "hostAliases": {
+          "type": "array",
+          "description": "Names that will be added to /etc/hosts for the host of the container",
+          "items": {
+            "type": "string"
+          }
+        },
         "abstract": {"type": "boolean"},
         "extends": {"type": "string"},
         "imagename": {"type": "string"},

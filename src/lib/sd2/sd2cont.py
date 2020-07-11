@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #############################################################################
-# Copyright (c) 2017 SiteWare Corp. All right reserved
+# Copyright (c) 2017-2020 SiteWare Corp. All right reserved
 #############################################################################
 
 import copy
@@ -24,13 +24,15 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
             ";"
         ])
     
-    ns_host_ip = myhosts.get_container_ip(container_host_name)
+    ns_container_ip = myhosts.get_container_ip(container_host_name)
+    ns_container_host_ip = myhosts.get_container_host_ip(container_host_name)
     sshport = 22 if util.is_localhost(host_name) else 2222
     ports = copy.copy(myhosts.get_container_ports(container_host_name))
     ports.append("{}:22".format(sshport))
-    ns_host_ports = ' '.join(['{}:{}'.format(ns_host_ip,x) for x in ports])
+    ns_host_ports = ' '.join(['{}:{}'.format(ns_container_ip,x) for x in ports])
     ns_extra_args = myhosts.get_container_extra_flags(container_host_name)
     ns_aliases = myhosts.get_container_aliases(container_host_name)
+    ns_hostAliases = myhosts.get_container_hostAliases(container_host_name)
 
     cmd.extend([
         'sudo',
@@ -42,7 +44,9 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
         "--hostname={}".format(container_host_name),
     ])
     for alias in ns_aliases:
-        cmd.append("--add-host='{alias}:{ip}'".format(alias=alias, ip=ns_host_ip))
+        cmd.append("--add-host='{alias}:{ip}'".format(alias=alias, ip=ns_container_ip))
+    for alias in ns_hostAliases:
+        cmd.append("--add-host='{alias}:{ip}'".format(alias=alias, ip=ns_container_host_ip))
 
     if myhosts.get_container_mount_home_dir(container_host_name):
         cmd.extend(["--volume", "$HOME:/home/$USER"])
@@ -54,7 +58,7 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
         cmd.append(ports)
         
     env = {
-        "SD2IP": ns_host_ip
+        "SD2IP": ns_container_ip
     }
     env.update()
     for var in myhosts.get_container_env(container_host_name):

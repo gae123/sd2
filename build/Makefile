@@ -1,7 +1,7 @@
 #############################################################################
-# Copyright (c) 2017 SiteWare Corp. All right reserved
+# Copyright (c) 2017-2020 SiteWare Corp. All right reserved
 #############################################################################
-SD2_VERSION := 0.19.1
+SD2_VERSION := 0.20.0
 
 TOP := $(realpath ..)
 SD2OS := $(shell uname)

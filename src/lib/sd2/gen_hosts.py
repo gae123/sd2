@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #############################################################################
-# Copyright (c) 2017 SiteWare Corp. All right reserved
+# Copyright (c) 2017-2020 SiteWare Corp. All right reserved
 #############################################################################
 import os
 from . import get_hosts
@@ -15,11 +15,15 @@ def get_our_config():
             continue
         rr += '{}\t{}\n'.format(host['local-ip'], host['name'] + '-local')
         for cont in host['containers']:
+            for alias in cont.get('hostAliases', []):
+                rr += "{}\t{}\n".format(host['local-ip'], alias)
+        for cont in host['containers']:
             rr += '{}\t'.format(cont['ip'])
-            rr += "{} ".format(cont['name'])
+            rr += "{}\n".format(cont['name'])
             for alias in cont.get('aliases', []):
+                rr += '{}\t'.format(cont['ip'])
                 rr += "{} ".format(alias)
-            rr += '\n'
+                rr += '\n'
     return rr
 
 def gen_etc_hosts():

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #############################################################################
-# Copyright (c) 2017 SiteWare Corp. All right reserved
+# Copyright (c) 2017-2020 SiteWare Corp. All right reserved
 #############################################################################
 import subprocess
 import copy
@@ -221,7 +221,7 @@ def _merge_into(config_dct, dct):
         else:
             config_dct[key] = val
 
-def read_config():
+def read_config(ignoreErrors=False):
     global g_root_dir, initial_timestamp
 
     if not os.path.exists(g_root_dir):
@@ -260,13 +260,17 @@ def read_config():
 
         _merge_into(config_dct, dct)
 
-    process_inheritance(config_dct, ['images', 'hosts', 'workspaces'])
-    process_containers(config_dct)
-    process_expansions(config_dct)
-    validate(config_dct)
-    ensure_base(config_dct['hosts'])
-    #print json.dumps(config_dct, indent=2)
-    config_dct['read_timestamp'] = get_max_timestamp()
+    try:
+        process_inheritance(config_dct, ['images', 'hosts', 'workspaces'])
+        process_containers(config_dct)
+        process_expansions(config_dct)
+        validate(config_dct)
+        ensure_base(config_dct['hosts'])
+        #print json.dumps(config_dct, indent=2)
+        config_dct['read_timestamp'] = get_max_timestamp()
+    except:
+        if not ignoreErrors:
+            raise
     return config_dct
 
 

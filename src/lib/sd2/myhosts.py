@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #############################################################################
-# Copyright (c) 2017 SiteWare Corp. All right reserved
+# Copyright (c) 2017-2020 SiteWare Corp. All right reserved
 #############################################################################
 import sys
 import logging
@@ -45,6 +45,8 @@ def init(a_config_dct=None):
                         container['imagename']
             aliases = [] if isinstance(container, six.string_types) else \
                         container.get('aliases', [])
+            hostAliases = [] if isinstance(container, six.string_types) else \
+                        container.get('hostAliases', [])
             enabled = host['enabled']
             if isinstance(container, dict) and enabled:
                 enabled = container.get('enabled', True) and not container.get('disabled', False)
@@ -62,7 +64,8 @@ def init(a_config_dct=None):
                           else container.get('remove_if_running_when_disabled', False)),
                 'host': host, # The host where the container lives
                 'enabled': enabled,
-                'aliases': aliases
+                'aliases': aliases,
+                'hostAliases': hostAliases
             }
             containers.append(cont)
             if containersdict.get(cont['name']):
@@ -152,11 +155,29 @@ def get_container_ip(containerName):
     cont = containersdict[containerName]
     return cont['ip']
 
+def get_container_host_ip(containerName):
+    if not initialized:
+        init()
+    cont = containersdict[containerName]
+    return cont['host']['local-ip']
+
+def get_container_host(containerName):
+    if not initialized:
+        init()
+    cont = containersdict[containerName]
+    return cont['host']
+
 def get_container_aliases(containerName):
     if not initialized:
         init()
     cont = containersdict[containerName]
     return cont['aliases']
+
+def get_container_hostAliases(containerName):
+    if not initialized:
+        init()
+    cont = containersdict[containerName]
+    return cont['hostAliases']
 
 def get_container_names(hostname):
     if not initialized:
