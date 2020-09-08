@@ -10,17 +10,16 @@ OUT := $(TOP)/out/$(SD2OS)
 export PYTHONPATH := $(PYTHONPATH):$(TOP)/src/lib
 export PATH := $(PATH):$(HOME)/.local/bin
 
-PYTHON_SOURCES := $(shell find $(TOP) -name '*.py')
+PYTHON_SOURCES := $(shell find $(TOP)/src -name '*.py')
 PYTHON_CHECKED := $(patsubst %.py,$(OUT)/checked/%.py.checked,$(PYTHON_SOURCES))
 PYTHON_CHECKED := $(filter-out %sd2_config_schema.py.checked,$(PYTHON_CHECKED))
-JSON_SOURCES := $(shell find $(TOP) -name '*.json')
+JSON_SOURCES := $(shell find $(TOP)/src -name '*.json')
 JSON_CHECKED := $(patsubst %.json,$(OUT)/checked/%.json.checked,$(JSON_SOURCES))
-BASH_SOURCES := $(shell find $(TOP) -name '*.sh')
+BASH_SOURCES := $(shell find $(TOP)/src -name '*.sh')
 BASH_CHECKED := $(patsubst %.sh,$(OUT)/checked/%.sh.checked,$(BASH_SOURCES))
-DOCKER_SOURCES := $(shell find $(TOP) -name 'Dockerfile')
+DOCKER_SOURCES := $(shell find $(TOP)/src -name 'Dockerfile')
 DOCKER_CHECKED := $(patsubst %,$(OUT)/checked/%.checked,$(DOCKER_SOURCES))
 SOURCES_CHECKED := $(PYTHON_CHECKED) $(JSON_CHECKED) $(BASH_CHECKED) $(DOCKER_CHECKED)
-
 
 all: $(TOP)/src/lib/sd2/sd2_config_schema.py \
      $(TOP)/src/lib/sd2/version.py \
@@ -35,6 +34,11 @@ build:
 	 cd $(OUT)/install && \
 	 pyinstaller -F $(TOP)/src/bin/sd2 && \
 	 cp dist/sd2 dist/sd2-$(SD2OS))
+
+build-macos:
+	(cd $(TOP)/macos && \
+     xcodebuild build \
+	)
 
 test: build
 	(cd $(TOP)/src && \
@@ -71,5 +75,10 @@ push: test all
 clean:
 	rm -rf $(OUT) $(TOP)/src/lib/sd2/sd2_config_schema.py
 	rm -rf $(TOP)/src/lib/sd2/version.py
+
+clean-macos:
+	(cd $(TOP)/macos && \
+     xcodebuild clean \
+	)
 
 FORCE:

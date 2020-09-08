@@ -26,7 +26,7 @@ fi
 
 sudo $PIP install six -U
 sudo $PIP install jinja2
-sudo $PIP install pyinstaller
+sudo $PIP install pyinstaller==3.6
 sudo $PIP install pyyaml
 sudo $PIP install python-daemon
 sudo $PIP install jsonschema==2.6.0
