@@ -1,5 +1,4 @@
-[![Build Status](https://travis-ci.org/gae123/sd2.svg?branch=master)](https://travis-ci.org/gae123/sd2)
-[![sd2ui Build Status](https://github.com/gae123/sd2/workflows/sd2ui/badge.svg)](https://github.com/gae123/sd2/actions?query=workflow%3Asd2ui)
+[![sd2](https://github.com/gae123/sd2/workflows/sd2/badge.svg)](https://github.com/gae123/sd2/actions?query=workflow%3Asd2)
 
 # sd<sup>2</sup>: Powering Software Defined Software Development™
 The Software Defined Software Development Process aka sd<sup>2</sup> (pronounced 
