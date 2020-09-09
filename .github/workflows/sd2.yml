@@ -1,0 +1,102 @@
+name: sd2
+on: [push]
+jobs:
+  build-sd2:
+    strategy:
+      matrix:
+        os: [macos-latest,ubuntu-16.04]
+        include:
+        - os: macos-latest
+          TOXENV: py27
+          SD2OS: Darwin
+        - os: ubuntu-16.04
+          TOXENV: 2.7
+          SD2OS: Linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python # Set Python version
+        uses: actions/setup-python@v2
+        with:
+          python-version: 2.7
+      - name: Install dependencies
+        run: ./build/install.sh
+      - name: Build
+        run: | 
+          cd build
+          make all
+      - name: Archivesd2
+        uses: actions/upload-artifact@v2
+        with:
+          name: sd2
+          path: |
+            out/**/install/dist/sd2-*
+            build/how-to-install.md
+
+  build-sd2ui:
+    runs-on: macOS-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build sd2ui
+        working-directory: ./macos
+        run: xcodebuild build
+      - name: Archive sd2ui
+        uses: actions/upload-artifact@v2
+        with:
+          name: sd2ui
+          path: |
+            macos/build/Release
+            !macos/build/Release/*.swiftmodule
+            !macos/build/Release/*.dSYM
+
+  # The release job
+  release-sd2:
+    needs: [build-sd2, build-sd2ui]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download archive
+        uses: actions/download-artifact@v2
+        with:
+          name: sd2
+      - name: Download archive
+        uses: actions/download-artifact@v2
+        with:
+          name: sd2ui
+      - name: helper
+        run: find /home/runner/work
+      - name: packager
+        run: |
+          mkdir /tmp/sd2
+          cp -p /home/runner/work/sd2/sd2/out/Darwin/install/dist/sd2-Darwin /tmp/sd2
+          cp -p /home/runner/work/sd2/sd2/out/Linux/install/dist/sd2-Linux /tmp/sd2
+          cp -p /home/runner/work/sd2/sd2/build/how-to-install.md /tmp/sd2
+          cp -rp /home/runner/work/sd2/sd2/sd2ui.app /tmp/sd2
+          chmod +x /tmp/sd2/sd2ui.app/Contents/MacOS/sd2ui
+          cd /tmp
+          tar -czvf sd2.tar.gz sd2
+          
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/rel_')
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        if: startsWith(github.ref, 'refs/tags/rel_')
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /tmp/sd2.tar.gz
+          asset_name: sd2.tar.gz
+          asset_content_type: application/gzip    
+
+        
