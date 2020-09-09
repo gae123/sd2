@@ -67,12 +67,14 @@ jobs:
         run: find /home/runner/work
       - name: packager
         run: |
-          mkdir /tmp/sd2
-          cp -p /home/runner/work/sd2/sd2/out/Darwin/install/dist/sd2-Darwin /tmp/sd2
-          cp -p /home/runner/work/sd2/sd2/out/Linux/install/dist/sd2-Linux /tmp/sd2
+          mkdir -p /tmp/sd2/MacOS /tmp/sd2/Linux
+          cp -p /home/runner/work/sd2/sd2/out/Darwin/install/dist/sd2-Darwin /tmp/sd2/MacOS/sd2
+          cp -p /home/runner/work/sd2/sd2/out/Linux/install/dist/sd2-Linux /tmp/sd2/Linux/sd2
           cp -p /home/runner/work/sd2/sd2/build/how-to-install.md /tmp/sd2
-          cp -rp /home/runner/work/sd2/sd2/sd2ui.app /tmp/sd2
-          chmod +x /tmp/sd2/sd2ui.app/Contents/MacOS/sd2ui
+          cp -rp /home/runner/work/sd2/sd2/sd2ui.app /tmp/sd2/MacOS
+          chmod +x /tmp/sd2/MacOS/sd2ui.app/Contents/MacOS/sd2ui
+          chmod +x /tmp/sd2/MacOS/sd2
+          chmod +x /tmp/sd2/Linux/sd2
           cd /tmp
           tar -czvf sd2.tar.gz sd2
           

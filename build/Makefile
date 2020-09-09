@@ -72,6 +72,9 @@ push: test all
 	git tag rel_$(SD2_VERSION)
 	git push && git push --tags
 
+unpush:
+	git tag -d rel_$(SD2_VERSION) && git push origin :refs/tags/rel_$(SD2_VERSION)
+
 clean:
 	rm -rf $(OUT) $(TOP)/src/lib/sd2/sd2_config_schema.py
 	rm -rf $(TOP)/src/lib/sd2/version.py

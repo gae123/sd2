@@ -2,8 +2,7 @@
 
 1. Download the `sd2.tar.gz` of your release and uncompress it/untar it (`tar -zxf`)
 2. Copy the sd2 executable for your platform into a directory in your path (e.g. ~/bin)
-   on your Editing Host (EH),
-   and rename it to `sd2`. (no need to download the source code)
+   on your Editing Host (EH), no need to download the source code).
 3. Create the configuration files in ~/.sd2 See the README in the first
    page for details.
 4. Run the program in a terminal as 'sd2'. The program will run as a daemon.
