@@ -21,7 +21,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         let statusBarMenu = NSMenu(title: "sd2 Bar Menu")
         
-        
         // Create the status item
         statusBarItem = NSStatusBar.system.statusItem(withLength: CGFloat(NSStatusItem.variableLength))
         
@@ -57,7 +56,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Periodically check daemon status and update UI
         checkDaemonStatusAndUpdateUI()
-        timer = Timer.scheduledTimer(timeInterval: 5.0, target: self, selector: #selector(checkDaemonStatusAndUpdateUI), userInfo: nil, repeats: true)
+        timer = Timer.scheduledTimer(timeInterval: 5.0, 
+                                     target: self, 
+                                     selector: #selector(checkDaemonStatusAndUpdateUI), 
+                                     userInfo: nil, 
+                                     repeats: true)
     }
     
     @objc func quit() {

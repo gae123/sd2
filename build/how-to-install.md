@@ -1,8 +1,8 @@
 ## Getting started
 
 1. Download the `sd2.tar.gz` of your release and uncompress it/untar it (`tar -zxf`)
-2. Copy the sd2 executable for your platform into a directory in your path (e.g. ~/bin)
-   on your Editing Host (EH), no need to download the source code).
+2. Copy the sd2 executable for your platform into a directory in your PATH (e.g. ~/bin)
+   on your Editing Host (EH). (no need to download the source code).
 3. Create the configuration files in ~/.sd2 See the README in the first
    page for details.
 4. Run the program in a terminal as 'sd2'. The program will run as a daemon.
@@ -10,7 +10,8 @@
     2. You can see logs with `sd2 logs`
     3. You can see the configuration used after the expansions with `sd2 --showconfig`
 5. On MacOS there is a menu bar app called `sd2ui.app`. This provides a
-   very basic UI to control and monitor sd2.
+   very basic UI to control and monitor sd2. Drag and drop it in the Applications
+   folder and start it like any other MacOS app.
 
 ### Supported Platforms
 * **Editing Host (EH)**: MacOS  & Linux (Linux is not tested regularly but should work)

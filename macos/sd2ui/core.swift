@@ -6,17 +6,27 @@
 //
 
 import Foundation
+import os.log
 
 private func executeShellCommand(command: String) -> Int32 {
+    os_log("Executing '%{public}@'", command)
     let process = Process()
-    process.launchPath = "/bin/bash"
+    process.executableURL = URL(fileURLWithPath: "/bin/bash")
     process.arguments = [
+        "-l",
         "-c",
         command
     ]
-    process.launch()
+    do {
+        try process.run()
+    }  catch {
+        os_log("Error starting process")
+        return -1;
+    }
     process.waitUntilExit()
+    os_log("Returned '%{public}@'", process.terminationStatus)
     return process.terminationStatus
+    
 }
 
 func isDaemonRunning() -> Bool {
