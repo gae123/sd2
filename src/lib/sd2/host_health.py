@@ -4,6 +4,7 @@
 #############################################################################
 """A small cache that keeps track of unhealthy hosts and backs off from using
 them"""
+from __future__ import absolute_import, print_function
 
 import time
 import logging

@@ -2,6 +2,7 @@
 #############################################################################
 # Copyright (c) 2017 SiteWare Corp. All right reserved
 #############################################################################
+from __future__ import absolute_import, print_function
 
 def gen_all(args=None):
     from .gen_hosts import gen_etc_hosts

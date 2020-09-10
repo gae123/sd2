@@ -1,7 +1,7 @@
 #############################################################################
 # Copyright (c) 2017-2020 SiteWare Corp. All right reserved
 #############################################################################
-SD2_VERSION := 0.21.0
+SD2_VERSION := 0.21.1
 
 TOP := $(realpath ..)
 SD2OS := $(shell uname)
@@ -21,12 +21,17 @@ DOCKER_SOURCES := $(shell find $(TOP)/src -name 'Dockerfile')
 DOCKER_CHECKED := $(patsubst %,$(OUT)/checked/%.checked,$(DOCKER_SOURCES))
 SOURCES_CHECKED := $(PYTHON_CHECKED) $(JSON_CHECKED) $(BASH_CHECKED) $(DOCKER_CHECKED)
 
-all: $(TOP)/src/lib/sd2/sd2_config_schema.py \
+all: all-sd2 \
+	 build-sd2ui \
+     FORCE
+
+all-sd2: $(TOP)/src/lib/sd2/sd2_config_schema.py \
      $(TOP)/src/lib/sd2/version.py \
      $(SOURCES_CHECKED) \
      $(OUT)/.lint \
+	 $(OUT)/.lint-py3k \
      build \
-     FORCE
+	 FORCE
 
 build:
 	(rm -rf $(OUT)/install && \
@@ -35,14 +40,23 @@ build:
 	 pyinstaller -F $(TOP)/src/bin/sd2 && \
 	 cp dist/sd2 dist/sd2-$(SD2OS))
 
-build-macos:
+
+build-sd2ui:
+ifeq ($(shell uname),Darwin)
 	(cd $(TOP)/macos && \
      xcodebuild build \
 	)
+else
+	echo No sd2ui for this platform
+endif
 
 test: build
 	(cd $(TOP)/src && \
 	 pytest)
+
+$(OUT)/.lint-py3k: $(PYTHON_SOURCES)
+	pylint --py3k $(PYTHON_SOURCES)
+	touch $@
 
 $(OUT)/.lint: $(PYTHON_SOURCES)
 	pylint -E $(PYTHON_SOURCES)
@@ -78,10 +92,10 @@ unpush:
 clean:
 	rm -rf $(OUT) $(TOP)/src/lib/sd2/sd2_config_schema.py
 	rm -rf $(TOP)/src/lib/sd2/version.py
-
-clean-macos:
+ifeq ($(shell uname),Darwin)
 	(cd $(TOP)/macos && \
      xcodebuild clean \
 	)
+endif
 
 FORCE:

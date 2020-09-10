@@ -2,6 +2,8 @@
 #############################################################################
 # Copyright (c) 2017 SiteWare Corp. All right reserved
 #############################################################################
+from __future__ import absolute_import, print_function
+
 import logging
 import sys
 import datetime

@@ -4,6 +4,7 @@
 #############################################################################
 '''A mini database we use to make sure that the same hosts get the same IP
 address all the time'''
+from __future__ import absolute_import
 
 import json
 import os

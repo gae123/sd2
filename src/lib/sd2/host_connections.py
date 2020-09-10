@@ -3,6 +3,8 @@
 # Copyright (c) 2017 SiteWare Corp. All right reserved
 #############################################################################
 '''In this module we start/stop hosts when they are disabled/enabled'''
+from __future__ import absolute_import, print_function
+
 import logging
 import os
 

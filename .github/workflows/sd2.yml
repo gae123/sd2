@@ -21,10 +21,9 @@ jobs:
           python-version: 2.7
       - name: Install dependencies
         run: ./build/install.sh
-      - name: Build
-        run: | 
-          cd build
-          make all
+      - name: Build sd2
+        working-directory: ./build
+        run: make all-sd2
       - name: Archivesd2
         uses: actions/upload-artifact@v2
         with:
@@ -39,8 +38,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Build sd2ui
-        working-directory: ./macos
-        run: xcodebuild build
+        working-directory: ./build
+        run: make build-sd2ui
       - name: Archive sd2ui
         uses: actions/upload-artifact@v2
         with:

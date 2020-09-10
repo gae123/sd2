@@ -2,6 +2,7 @@
 #############################################################################
 # Copyright (c) 2017-2020 SiteWare Corp. All right reserved
 #############################################################################
+from __future__ import absolute_import, print_function
 
 import copy
 import os
