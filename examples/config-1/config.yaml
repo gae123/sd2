@@ -3,7 +3,7 @@
 images:
   - name: "ubuntu1604"  # The name that will be used in this file
     # Execute this command before starting the container to get the entrypoint script
-    docker_auth: >-
+    run_before: >-
       wget -O ~/.tmp_entrypoint.sh 
       https://raw.githubusercontent.com/gae123/sd2/master/examples/entrypoint.sh;
       chmod +x ~/.tmp_entrypoint.sh

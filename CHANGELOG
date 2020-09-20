@@ -4,7 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.20.1] - 2020-09-09
+## [0.21.2] - 2020-09-19
+### Added
+- sd2: A new option images.<<image>>.startup_script. When the container
+  starts this script is executed. A good place to run the standard entrypoint.sh
+  and install additional packages. If you use this option --entrypoint 
+  must not be used.
+- sd2: In config images.image section, before a container image is started 
+  all `{sd2ContainerName}` references
+  are expanded to the name of the container being instantiated
+- sd2: In config `images.image.docker_auth`  
+  is now deprecated in favor of `images.image.run_before`
+### Fixed
+- entrypoint.sh: Fixed an issue that was causing startup to stop in ubuntu
+  images that did not already have ssh installed.
+
+## [0.21.1] - 2020-09-09
 ### Added
 - sd2: pylint for python 3 compatibility issues to make transition to python3 easier
 - sd2ui: MacOS console logging to the

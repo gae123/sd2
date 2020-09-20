@@ -109,11 +109,12 @@ def get_container_command(containerName):
     cont = containersdict[containerName]
     return cont['image'].get('command', '')
 
-def get_container_auth(containerName):
+def get_run_before(containerName):
     if not initialized:
         init()
     cont = containersdict.get(containerName)
-    return cont['image'].get('docker_auth')
+    # docker_auth is deprecated
+    return cont['image'].get('run_before') or cont['image'].get('docker_auth')
 
 
 def get_container_upgrade_flag(containerName):

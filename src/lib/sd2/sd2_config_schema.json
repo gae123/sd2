@@ -172,6 +172,11 @@
         },
         "docker_auth": {
           "type": "string",
+          "description": "DEPRECATED: use run_before instead. A command to run just before running docker, usually used for authentication, ",
+          "deprecated": true
+        },
+        "run_before": {
+          "type": "string",
           "description": "A command to run just before running docker, usually used for authentication"
         },
          "mount_home_dir": {"type": "boolean", "default": true},
