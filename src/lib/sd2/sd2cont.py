@@ -18,7 +18,7 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
     if not dryrun:
         gen_interfaces.gen_interfaces(host_name)
     cmd = []
-    ns_host_auth = myhosts.get_container_auth(container_host_name)
+    ns_host_auth = myhosts.get_run_before(container_host_name)
     if ns_host_auth:
         cmd.extend([
             ns_host_auth,
@@ -70,6 +70,8 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
 
     cmd.extend(['--workdir', "/home/$USER"])
     cmd.append('--tty')
+
+    add_entrypoint_if_needed(cmd, host_name, container_host_name)
     if isinstance(ns_extra_args, six.string_types):
         ns_extra_args.split()
     for arg in ns_extra_args.split():
