@@ -8,6 +8,7 @@ UNUSED_GROUP_ID=21337
 
 UNUSED_DOCKER_GROUP_ID=21336
 
+export DEBIAN_FRONTEND=noninteractive
 # Find the package manager, Ubunut uses apt-get, AML uses yum
 (type apt-get &> /dev/null) && DOCKER_PKGUPD="apt-get -y update"
 (type apt-get &> /dev/null) && DOCKER_PKGMGR="apt-get -y install"
@@ -112,6 +113,7 @@ if [ x"$SD2_EP_SHELL" = x"1" ]; then
     sudo -i -u $USER
 fi
 if [ x"$SD2_EP_DAEMON" = x"1" ]; then
+    echo Sleeping for ever...
     sleep infinity
 fi
 
