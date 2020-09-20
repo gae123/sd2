@@ -22,5 +22,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.21.1] - 2020-09-09
 ### Added
 - sd2: pylint for python 3 compatibility issues to make transition to python3 easier
-- sd2ui: MacOS console logging to the
+- sd2ui: MacOS console logging
 - sd2ui: removed deprecated APIs
