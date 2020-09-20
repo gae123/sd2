@@ -41,8 +41,8 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
         'run',
         '--detach',
         '--privileged',
-        "--name={}".format(container_host_name),
-        "--hostname={}".format(container_host_name),
+        "--name={sd2ContainerName}",
+        "--hostname={sd2ContainerName}",
     ])
     for alias in ns_aliases:
         cmd.append("--add-host='{alias}:{ip}'".format(alias=alias, ip=ns_container_ip))
@@ -80,6 +80,7 @@ def create_start_docker(host_name, container_host_name, dryrun=False):
     cmd.append(myhosts.get_container_command(container_host_name))
 
     command = ' '.join(cmd)
+    command = command.format(sd2ContainerName=container_host_name)
     if (not dryrun):
         logging.info("EXEC %s", command)
         util.remote_system(host_name, command)
