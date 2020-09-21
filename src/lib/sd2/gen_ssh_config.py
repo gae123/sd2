@@ -93,6 +93,7 @@ def generate_for_host(host):
     
         rr += generate_host_entry(host, host['name'], [], ['LocalForward'])
         rr += 'host {}-ports\n'.format(host['name'])
+        rr += "    LogLevel ERROR\n"
         if not 'HostName' in six.viewkeys(host):
             host['HostName'] = host['name']
         for key, val in six.iteritems(host):
