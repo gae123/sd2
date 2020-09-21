@@ -7,11 +7,39 @@ from __future__ import absolute_import, print_function
 import copy
 import os
 import logging
+import random
 import sys
 import subprocess
 import six
+import string
+from . import util
 
 from . import util
+
+def add_entrypoint_if_needed(cmd, host_name, container_host_name):
+    from . import myhosts
+    script = myhosts.get_startup_script(container_host_name)
+
+    if not script:
+        return
+       
+    # Write the commands in a temporary file
+    random_string = util.get_random_string()
+    tmp_dir = "/tmp"
+    path = "{}/gae123_com_{}_{}".format(tmp_dir, container_host_name, random_string)
+    with open(path, "w") as file_desc:
+        file_desc.write("#!/usr/bin/env bash\n")
+        file_desc.write(script)
+
+    os.system("chmod +x {path} && \
+               scp {path} {host}:{path} && \
+               rm -f {path}".format(path=path, host=host_name))
+
+    # Mound the temp file in the container and make it they entrypoint
+    dest_path = path
+    cmd.append("--mount type=bind,source={},destination={}".format(path, dest_path))
+    cmd.append("--entrypoint={}". format(dest_path))
+
 
 def create_start_docker(host_name, container_host_name, dryrun=False):
     from . import myhosts, gen_interfaces

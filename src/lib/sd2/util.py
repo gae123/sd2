@@ -6,7 +6,10 @@ from __future__ import absolute_import, print_function
 
 import os
 import logging
+import random
+import string
 import subprocess
+
 
 from .host_health import set_host_health, is_host_healthy
 
@@ -144,3 +147,12 @@ def ssh_control_args(master=False):
         'yes' if master else 'no'
     )
 
+def get_temp_dir():
+    path = "/tmp/gae123_com/sd2"
+    if not os.path.exists(path):
+        os.system("mkdir -p {}".format(path))
+    return path
+
+def get_random_string(n=10):
+    char_range = string.ascii_lowercase + string.digits
+    return ''.join(random.SystemRandom().choice(char_range) for _ in range(n))

@@ -116,6 +116,11 @@ def get_run_before(containerName):
     # docker_auth is deprecated
     return cont['image'].get('run_before') or cont['image'].get('docker_auth')
 
+def get_startup_script(containerName):
+    if not initialized:
+        init()
+    cont = containersdict.get(containerName)
+    return cont['image'].get('startup_script')
 
 def get_container_upgrade_flag(containerName):
     if not initialized:

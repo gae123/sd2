@@ -179,7 +179,11 @@
           "type": "string",
           "description": "A command to run just before running docker, usually used for authentication"
         },
-         "mount_home_dir": {"type": "boolean", "default": true},
+        "startup_script": {
+           "type": "string",
+           "description": "A series of shell commands to run when the container starts"
+        },
+        "mount_home_dir": {"type": "boolean", "default": true},
         "ports": {
           "type": "array",
           "items": {
