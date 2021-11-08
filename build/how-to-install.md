@@ -25,7 +25,7 @@ need one machine (e.g. a MacOS notebook) with docker installed that will
 1. Editing Host Requirements
    1. Make sure you have or install rsync
    1. Make sure you have or install the ssh client
-   1. Install fswatch (see [here](http://stackoverflow.com/questions/1515730/is-there-a-command-like-watch-or-inotifywait-on-the-mac))
+   1. DEPRECATED Install fswatch (see [here](http://stackoverflow.com/questions/1515730/is-there-a-command-like-watch-or-inotifywait-on-the-mac))
    1. Add your user to sudoers without a password requirement (see [here](https://askubuntu.com/questions/168461/how-do-i-sudo-without-having-to-enter-my-password))
 1. Development Host(s) Requirements
    1. Install rsync, ssh server and docker

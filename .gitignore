@@ -2,3 +2,8 @@
 out/
 out/**
 src/lib/sd2/sd2_config_schema.py
+.cache
+.idea
+*.code-workspace
+.sublime/*
+.DS_Store

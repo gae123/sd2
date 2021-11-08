@@ -209,13 +209,15 @@ def do_containers(host, containers, force, dryrun):
         ret = ret or ret0
     return ret
 
-def check_for_prereqs():
+def check_for_prereqs(args):
     tools_found = True
-    for tool in [
+    tools = [
         ['ssh', 'Please install ssh and restart..'],
         ['rsync', 'Please install rsync and restart..'],
-        ['fswatch', 'Please install fswatch and restart..'],
-    ]:
+    ]
+    if args.fswatch:
+        tools.push(['fswatch', 'Please install fswatch and restart..'])
+    for tool in tools:
         try:
             rr = subprocess.check_output("type {}".format(tool[0]), shell=True)
         except Exception as ex:
