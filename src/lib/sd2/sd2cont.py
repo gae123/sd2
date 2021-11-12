@@ -216,7 +216,7 @@ def check_for_prereqs(args):
         ['rsync', 'Please install rsync and restart..'],
     ]
     if args.fswatch:
-        tools.push(['fswatch', 'Please install fswatch and restart..'])
+        tools.append(['fswatch', 'Please install fswatch and restart..'])
     for tool in tools:
         try:
             rr = subprocess.check_output("type {}".format(tool[0]), shell=True)
